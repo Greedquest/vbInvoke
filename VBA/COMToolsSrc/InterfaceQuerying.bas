@@ -3,7 +3,7 @@ Attribute VB_Name = "InterfaceQuerying"
 '@Folder "TypeInfoInvoker"
 Option Explicit
 
-Public Declare PtrSafe Function IIDFromString Lib "OLE32.DLL" (ByVal lpsz As LongPtr, ByRef lpiid As GUIDt) As Long
+Public Declare PtrSafe Function IIDFromString Lib "ole32.dll" (ByVal lpsz As LongPtr, ByRef lpiid As GUIDt) As Long
 
 Public Function ObjectFromObjPtr(ByVal Address As LongPtr) As IUnknown
     '@Ignore VariableNotAssigned: Assigned ByRef
@@ -68,5 +68,4 @@ End Function
 Public Function QueryInterfaceObject(ByRef ClassInstance As IUnknown, ByVal InterfaceIID As String) As IUnknown
     Set QueryInterfaceObject = ObjectFromObjPtr(QueryInterface(ClassInstance, InterfaceIID))
 End Function
-
 

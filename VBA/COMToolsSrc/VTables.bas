@@ -28,7 +28,6 @@ Public Type IDispatchVTable
     Invoke As LongPtr
 End Type: Public IDispatchVTable As IDispatchVTable
 
-
 'TODO tidy this up
 '    MIDL_INTERFACE ("00020402-0000-0000-C000-000000000046")
 'ITypeLib:      Public IUnknown
@@ -82,7 +81,7 @@ End Type: Public IDispatchVTable As IDispatchVTable
 '            /* [in] */ TLIBATTR *pTLibAttr) = 0;
 '
 '    };
-Public Const ITypeLibGUID As String = "{00020402-0000-0000-C000-000000000046}"
+
 Public Type ITypeLibVTable
     IUnknown As IUnknownVTable
     GetTypeInfoCount As LongPtr
@@ -96,7 +95,6 @@ Public Type ITypeLibVTable
     FindName As LongPtr
     ReleaseTLibAttr As LongPtr
 End Type: Public ITypeLibVTable As ITypeLibVTable
-
 
 '[ITypeInfo](https://github.com/tpn/winsdk-10/blob/master/Include/10.0.16299.0/um/OAIdl.h#L2683) extends IUnknown
 '0      HRESULT  QueryInterface ([in] REFIID riid, [out] void **ppvObject)
@@ -148,14 +146,17 @@ Public Property Get IUnknownVTableOffset(ByRef member As LongPtr) As LongPtr
     IUnknownVTableOffset = VarPtr(member) - VarPtr(IUnknownVTable)
 End Property
 
+'@EntryPoint
 Public Property Get IDispatchVTableOffset(ByRef member As LongPtr) As LongPtr
     IDispatchVTableOffset = VarPtr(member) - VarPtr(IDispatchVTable)
 End Property
 
+'@EntryPoint
 Public Property Get ITypeInfoVTableOffset(ByRef member As LongPtr) As LongPtr
     ITypeInfoVTableOffset = VarPtr(member) - VarPtr(ITypeInfoVTable)
 End Property
 
+'@EntryPoint
 Public Property Get ITypeLibVTableOffset(ByRef member As LongPtr) As LongPtr
     ITypeLibVTableOffset = VarPtr(member) - VarPtr(ITypeLibVTable)
 End Property

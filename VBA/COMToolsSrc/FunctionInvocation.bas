@@ -11,6 +11,7 @@ Public Enum CALLINGCONVENTION_ENUM
     ' http://msdn.microsoft.com/en-us/library/system.runtime.interopservices.comtypes.callconv%28v=vs.110%29.aspx
     CC_FASTCALL = 0&
     CC_CDECL
+    
     CC_PASCAL
     CC_MACPASCAL
     CC_STDCALL                                   ' typical windows APIs
@@ -28,6 +29,7 @@ Public Enum CALLRETURNTUYPE_ENUM
     CR_SINGLE = vbSingle
     CR_DOUBLE = vbDouble
     CR_CURRENCY = vbCurrency
+    CR_HRESULT = CR_LONG 'alias because it comes up so often
     [_CR_Dispatch] = vbObject
     ' if the value you need isn't in above list, you can pass the value manually to the
     ' CallFunction_DLL method below. For additional values, see:
@@ -40,18 +42,50 @@ Public Enum STRINGPARAMS_ENUM
     STR_UNICODE
 End Enum
 
-Public Declare PtrSafe Function DispCallFunc Lib "oleaut32.dll" (ByVal pvInstance As LongPtr, ByVal offsetVtable As LongPtr, ByVal CallConv As CALLINGCONVENTION_ENUM, ByVal vartypeReturn As Integer, ByVal paramCount As Long, ByRef paramTypes As Integer, ByRef paramValues As LongPtr, ByRef returnValue As Variant) As hResultCode
 
-Private Declare PtrSafe Sub SetLastError Lib "kernel32.dll" (ByVal dwErrCode As Long)
-Private Declare PtrSafe Function lstrlenA Lib "kernel32.dll" (ByVal lpString As LongPtr) As Long
-Private Declare PtrSafe Function lstrlenW Lib "kernel32.dll" (ByVal lpString As LongPtr) As Long
+#If VBA7 Then
+    Public Declare PtrSafe Sub SetLastError Lib "kernel32.dll" (ByVal dwErrCode As Long)
+    Private Declare PtrSafe Function lstrlenA Lib "kernel32.dll" (ByVal lpString As LongPtr) As Long
+    Private Declare PtrSafe Function lstrlenW Lib "kernel32.dll" (ByVal lpString As LongPtr) As Long
+#Else
+    Public Declare Sub SetLastError Lib "kernel32.dll" (ByVal dwErrCode As Long)
+    Private Declare Function lstrlenA Lib "kernel32.dll" (ByVal lpString As LongPtr) As Long
+    Private Declare Function lstrlenW Lib "kernel32.dll" (ByVal lpString As LongPtr) As Long
+#End If
 
-
-'@EntryPoint
 Public Function CallFunction(ByVal InterfacePointer As LongPtr, ByVal VTableByteOffsetOrFunction As LongPtr, _
-                                 ByVal FunctionReturnType As CALLRETURNTUYPE_ENUM, _
-                                 ByVal CallConvention As CALLINGCONVENTION_ENUM, _
-                                 ParamArray FunctionParameters() As Variant) As Variant
+                             ByVal FunctionReturnType As CALLRETURNTUYPE_ENUM, _
+                             ByVal CallConvention As CALLINGCONVENTION_ENUM, _
+                             ParamArray FunctionParameters() As Variant) As Variant
+    Dim vParams() As Variant
+    '@Ignore DefaultMemberRequired: apparently not since this code works fine
+    vParams() = FunctionParameters()             ' copy passed parameters, if any
+    CallFunction = DispCallFunctionWrapper(InterfacePointer, VTableByteOffsetOrFunction, FunctionReturnType, CallConvention, vParams)
+                             
+End Function
+
+Public Function CallVBAFuncPtr(ByVal FuncPtr As LongPtr, _
+                             ByVal FunctionReturnType As CALLRETURNTUYPE_ENUM, _
+                             ParamArray FunctionParameters() As Variant) As Variant
+    Dim vParams() As Variant
+    '@Ignore DefaultMemberRequired: apparently not since this code works fine
+    vParams() = FunctionParameters()             ' copy passed parameters, if any
+    CallVBAFuncPtr = DispCallFunctionWrapper(0, FuncPtr, FunctionReturnType, CC_STDCALL, vParams)
+End Function
+
+Public Function CallCOMObjectVTableEntry(ByRef COMInterface As IUnknown, ByVal VTableByteOffset As LongPtr, _
+                             ByVal FunctionReturnType As CALLRETURNTUYPE_ENUM, _
+                             ParamArray FunctionParameters() As Variant) As Variant
+    Dim vParams() As Variant
+    '@Ignore DefaultMemberRequired: apparently not since this code works fine
+    vParams() = FunctionParameters()             ' copy passed parameters, if any
+    CallCOMObjectVTableEntry = DispCallFunctionWrapper(ObjPtr(COMInterface), VTableByteOffset, FunctionReturnType, CC_STDCALL, vParams)
+End Function
+
+Private Function DispCallFunctionWrapper(ByVal InterfacePointer As LongPtr, ByVal VTableByteOffsetOrFunction As LongPtr, _
+                             ByVal FunctionReturnType As CALLRETURNTUYPE_ENUM, _
+                             ByVal CallConvention As CALLINGCONVENTION_ENUM, _
+                             ByRef vParams() As Variant) As Variant
                             
     ' Used to call active-x or COM objects, not standard dlls
 
@@ -77,31 +111,34 @@ Public Function CallFunction(ByVal InterfacePointer As LongPtr, ByVal VTableByte
     If VTableByteOffsetOrFunction < 0& Or ((InterfacePointer = 0) And (VTableByteOffsetOrFunction = 0)) Then Exit Function
     If Not (FunctionReturnType And &HFFFF0000) = 0& Then Exit Function ' can only be 4 bytes
 
-    Dim pIndex As Long, pCount As Long
-    Dim vParamPtr() As LongPtr, vParamType() As Integer
-    Dim vRtn As Variant, vParams() As Variant
     
-    vParams() = FunctionParameters()             ' copy passed parameters, if any
+    Dim pCount As Long
     pCount = Abs(UBound(vParams) - LBound(vParams) + 1&)
+    
+    Dim vParamPtr() As LongPtr
+    Dim vParamType() As Integer
     If pCount = 0& Then                          ' no return value (sub vs function)
         ReDim vParamPtr(0 To 0)
         ReDim vParamType(0 To 0)
     Else
         ReDim vParamPtr(0 To pCount - 1&)        ' need matching array of parameter types
         ReDim vParamType(0 To pCount - 1&)       ' and pointers to the parameters
+        Dim pIndex As Long
         For pIndex = 0& To pCount - 1&
             vParamPtr(pIndex) = VarPtr(vParams(pIndex))
             vParamType(pIndex) = VarType(vParams(pIndex))
         Next
     End If
     ' call the function now
-    pIndex = DispCallFunc(InterfacePointer, VTableByteOffsetOrFunction, CallConvention, FunctionReturnType, _
+    Dim vRtn As Variant
+    Dim hresult As hResultCode
+    hresult = DispCallFunc(InterfacePointer, VTableByteOffsetOrFunction, CallConvention, FunctionReturnType, _
                           pCount, vParamType(0), vParamPtr(0), vRtn)
         
-    If pIndex = 0& Then                          ' 0 = S_OK
-        CallFunction = vRtn                  ' return result
+    If hresult = S_OK Then
+        DispCallFunctionWrapper = vRtn                      ' return result
     Else
-        SetLastError pIndex                      ' set error & return Empty
+        SetLastError hresult                      ' set error & return Empty
     End If
 
 End Function
