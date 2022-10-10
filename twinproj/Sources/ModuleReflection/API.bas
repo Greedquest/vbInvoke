@@ -4,7 +4,7 @@ Option Explicit
 
 Public Function GetFancyAccessor(Optional ByVal moduleName As String = "ExampleModule", Optional ByVal projectName As Variant) As Object
     Dim project As String
-    project = IIf(IsMissing(projectName), Application.VBE.ActiveVBProject.name, projectName)
+    project = IIf(IsMissing(projectName), Application.VBE.ActiveVBProject.Name, projectName)
     
     Dim moduleTypeInfo As TypeInfo
     Dim accessor As Object
@@ -44,7 +44,7 @@ Private Function getITypeInfo(ByVal moduleName As String, ByVal pITypeLib As Lon
     Dim pcFound As Integer 'number of matches
     pcFound = 1
     'call ITypeLib::FindName to get the module specific type info
-    hresult = COMTools.CallFunction( _
+    hresult = CallFunction( _
         pITypeLib, ITypeLibVTableOffset(ITypeLibVTable.FindName), _
         CR_HRESULT, CC_STDCALL, _
         StrPtr(moduleName), _
