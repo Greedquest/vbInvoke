@@ -22,7 +22,7 @@ Private Sub Class_Initialize()
     Dim asDisp As IDispatchVB
     Set asDisp = Me
     Dim pAsDispVT As LongPtr
-    pAsDispVT = memlongptr(ObjPtr(asDisp))
+    pAsDispVT = MemLongPtr(ObjPtr(asDisp))
     Dim pInvokeVB As LongPtr, pInvokeOriginal As LongPtr
     pInvokeVB = pAsDispVT + IDispatchVBVTableOffset(IDispatchVBVTable.InvokeVB)
     pInvokeOriginal = pAsDispVT + IDispatchVBVTableOffset(IDispatchVBVTable.IDispatch.Invoke)
@@ -32,11 +32,11 @@ Private Sub Class_Initialize()
     pGetIDsOfNamesOriginal = pAsDispVT + IDispatchVBVTableOffset(IDispatchVBVTable.IDispatch.GetIDsOfNames)
     
     'swap the vtable entries
-    memlongptr(pGetIDsOfNamesOriginal) = memlongptr(pGetIDsOfNamesVB)
-    memlongptr(pInvokeOriginal) = memlongptr(pInvokeVB)
+    MemLongPtr(pGetIDsOfNamesOriginal) = MemLongPtr(pGetIDsOfNamesVB)
+    MemLongPtr(pInvokeOriginal) = MemLongPtr(pInvokeVB)
 End Sub
 
-Private Property Get funcs()
+Private Property Get funcs() as Dictionary
     'NOTE cached assuming you cannot modify typeinfo at all at runtime (i.e. you cannot edit a module while vba is running)
     'TODO Check if this holds True for VBComponents.Add
     Static result As Dictionary
@@ -44,14 +44,14 @@ Private Property Get funcs()
     Set funcs = result
 End Property
 
-Private Sub IDispatchVB_GetIDsOfNamesVB(ByVal riid As LongLong, ByVal namesArray As LongLong, ByVal cNames As Long, ByVal lcid As Long, ByVal dispidArray As LongLong)
+Private Sub IDispatchVB_GetIDsOfNamesVB(ByVal riid As LongPtr, ByVal namesArray As LongPtr, ByVal cNames As Long, ByVal lcid As Long, ByVal dispidArray As LongPtr)
     'Debug.Assert cNames = 1
     Debug.Assert Not ITypeInfo Is Nothing
     Debug.Assert Not accessor Is Nothing
     Dim i As Long
     For i = 0 To cNames - 1
         Dim name As String
-        name = GetStrFromPtrW(memlongptr(namesArray + PTR_SIZE * i))
+        name = GetStrFromPtrW(MemLongPtr(namesArray + PTR_SIZE * i))
         If funcs.Exists(name) Then
             MemLong(dispidArray + PTR_SIZE * i) = CLng(funcs(name))
         Else
@@ -62,10 +62,10 @@ Private Sub IDispatchVB_GetIDsOfNamesVB(ByVal riid As LongLong, ByVal namesArray
     Next i
 End Sub
 
-Private Sub IDispatchVB_InvokeVB(ByVal dispIDMember As Long, ByVal riid As LongLong, ByVal lcid As Long, ByVal wFlags As Integer, ByVal pDispParams As LongLong, ByVal pVarResult As LongLong, ByVal pExcepInfo As LongLong, ByVal puArgErr As LongLong)
+Private Sub IDispatchVB_InvokeVB(ByVal dispIDMember As Long, ByVal riid As LongPtr, ByVal lcid As Long, ByVal wFlags As Integer, ByVal pDispParams As LongPtr, ByVal pVarResult As LongPtr, ByVal pExcepInfo As LongPtr, ByVal puArgErr As LongPtr)
     Debug.Assert Not accessor Is Nothing
     Dim hresult As hResultCode
-    hresult = COMTools.CallCOMObjectVTableEntry( _
+    hresult = CallCOMObjectVTableEntry( _
         accessor, IDispatchVTableOffset(IDispatchVTable.Invoke), _
         CR_LONG, _
         dispIDMember, _

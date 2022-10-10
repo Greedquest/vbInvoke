@@ -29,9 +29,9 @@ Public Property Get name() As String
     name = getModName(ITypeInfo)
 End Property
 
-Private Function attrs() As COMTools.TYPEATTR
+Private Function attrs() As TYPEATTR
     Static result As TYPEATTR
     'check if already set
-    If result.aGUID.data1 = 0 Then result = TypeInfoHelper.getAttrs(ITypeInfo)
+    If result.aGUID.Data1 = 0 Then result = TypeInfoHelper.getAttrs(ITypeInfo)
     attrs = result
 End Function

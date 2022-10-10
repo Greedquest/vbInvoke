@@ -33,11 +33,11 @@ Public Function StdModuleAccessor(ByVal moduleName As String, ByVal project As S
     
     'The references object instance looks like this, and has a raw pointer contained within it to the typelibs it uses
     Dim refData As VBEReferencesObj
-    MemoryTools.CopyMemory refData, ByVal referencesInstancePtr, LenB(refData)
-    Debug.Assert refData.vTable1 = memlongptr(referencesInstancePtr)
+    CopyMemory refData, ByVal referencesInstancePtr, LenB(refData)
+    Debug.Assert refData.vTable1 = MemLongPtr(referencesInstancePtr)
     
     Dim typeLibInstanceTable As VBETypeLibObj
-    MemoryTools.CopyMemory typeLibInstanceTable, ByVal refData.typeLib, LenB(typeLibInstanceTable)
+    CopyMemory typeLibInstanceTable, ByVal refData.typeLib, LenB(typeLibInstanceTable)
 
     'Create a class to iterate over the doubly linked list
     Dim typeLibPtrs As New TypeLibIterator
@@ -50,7 +50,7 @@ Public Function StdModuleAccessor(ByVal moduleName As String, ByVal project As S
 
     Do While typeLibPtrs.TryGetNext(projectTypeLib)
         Debug.Assert typeLibPtrs.tryGetCurrentRawITypeLibPtr(outITypeLib)
-        Debug.Print "[LOG] "; "Discovered: "; projectTypeLib.name
+        Debug.Print "[LOG] " ; "Discovered: " ; projectTypeLib.name
         If projectTypeLib.name = project Then
             'we have found the project typelib, check for the correct module within it
             Dim moduleTI As TypeInfo
@@ -69,7 +69,7 @@ Public Function StdModuleAccessor(ByVal moduleName As String, ByVal project As S
     '   Meaning an object is made by merging the COM interface with a managed C# interface
     '   We don't have to worry about this, it is just to avoid some bug with C# reflection I think
     Dim IVBEComponent As LongPtr
-    IVBEComponent = COMTools.QueryInterface(moduleTI.ITypeInfo, InterfacesDict("IVBEComponent"))
+    IVBEComponent = QueryInterface(moduleTI.ITypeInfo, InterfacesDict("IVBEComponent"))
     
     'Call Function IVBEComponent::GetStdModAccessor() As IDispatch
     Dim stdModAccessor As Object
