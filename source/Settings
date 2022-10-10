@@ -1,0 +1,30 @@
+{
+	"configuration.inherits": "Defaults",
+	"project.appTitle": "vbInvoke",
+	"project.buildPath": "${SourcePath}\\Build\\${ProjectName}_${Architecture}.${FileExtension}",
+	"project.buildType": "Package TWINPACK",
+	"project.description": "Execute VBA code à la RubberDuck",
+	"project.exportAfterSave": true,
+	"project.exportPath": "${SourcePath}\\source",
+	"project.exportPathIsV2": true,
+	"project.id": "{DEC8BB0E-AE8A-4811-93AA-DD9016473AEC}",
+	"project.licence": "MIT",
+	"project.name": "vbInvoke",
+	"project.optionExplicit": true,
+	"project.references": [
+		{
+			"id": "{00020430-0000-0000-C000-000000000046}",
+			"lcid": 0,
+			"name": "OLE Automation",
+			"path32": "C:\\Windows\\SysWOW64\\stdole2.tlb",
+			"path64": "C:\\Windows\\System32\\stdole2.tlb",
+			"versionMajor": 2,
+			"versionMinor": 0
+		}
+	],
+	"project.warnings": {
+		"errors": [],
+		"ignored": []
+	},
+	"runtime.useUnicodeStandardLibrary": true
+}
