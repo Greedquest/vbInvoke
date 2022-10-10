@@ -1,8 +1,0 @@
-[ ClassId ("0462B907-D33F-4FC3-8E95-6674D57DA863") ]
-Class HelloWorldClass
-    
-    Public Sub Show()
-        MsgBox "Hello world!"
-    End Sub
-    
-End Class

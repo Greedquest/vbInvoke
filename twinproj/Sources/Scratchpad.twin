@@ -1,0 +1,10 @@
+
+Module Scratchpad
+    
+End Module
+
+
+Interface ITypeLib Extends stdole.IUnknown
+    
+	
+End Interface
