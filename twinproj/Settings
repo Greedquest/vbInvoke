@@ -20,6 +20,24 @@
 			"path64": "C:\\Windows\\System32\\stdole2.tlb",
 			"versionMajor": 2,
 			"versionMinor": 0
+		},
+		{
+			"id": "{420B2830-E718-11CF-893D-00A0C9054228}",
+			"lcid": 0,
+			"name": "Microsoft Scripting Runtime",
+			"path32": "C:\\Windows\\SysWOW64\\scrrun.dll",
+			"path64": "C:\\Windows\\System32\\scrrun.dll",
+			"versionMajor": 1,
+			"versionMinor": 0
+		},
+		{
+			"id": "{00020813-0000-0000-C000-000000000046}",
+			"lcid": 0,
+			"name": "Microsoft Excel 16.0 Object Library",
+			"path32": "",
+			"path64": "C:\\Program Files\\Microsoft Office\\Root\\Office16\\EXCEL.EXE",
+			"versionMajor": 1,
+			"versionMinor": 9
 		}
 	],
 	"project.versionMajor": 1,

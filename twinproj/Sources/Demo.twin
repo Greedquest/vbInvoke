@@ -23,9 +23,9 @@ Module Experiments
 
 	Private test_val As Double
 
-	Public Sub testCallingPrivateMethod()
+	Public Sub testCallingPrivateMethod(ByVal wb As Excel.Workbook)
 		Dim exampleMod As Object
-		Set exampleMod = GetFancyAccessor("ExampleModule", ThisWorkbook.VBProject.Name)
+		Set exampleMod = GetFancyAccessor("ExampleModule", wb.VBProject.Name)
 		Debug.Assert exampleMod.Foo(2) = "HelloWorld!!"
 	End Sub
 
