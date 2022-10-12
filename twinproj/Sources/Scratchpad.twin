@@ -1,10 +1,18 @@
 
 Module Scratchpad
+    Sub InvokeSomething()
+    	With New Excel.Application
+            .Visible = True
+            Dim wb As Workbook = .Workbooks.Open("C:\GitHub\vbInvoke\testing\callme.xlsm")
+            testCallingPrivateMethod wb
+            Stop
+        End With
+    End Sub
     
 End Module
 
 
-Interface ITypeLib Extends stdole.IUnknown
+' Interface ITypeLib Extends stdole.IUnknown
     
 	
-End Interface
+' End Interface

@@ -25,10 +25,10 @@ Public Type VBETypeLibObj
 End Type
 
 
-Public Function StdModuleAccessor(ByVal moduleName As String, ByVal project As String, Optional ByRef outModuleTypeInfo As TypeInfo, Optional ByRef outITypeLib As LongPtr) As Object
+Public Function StdModuleAccessor(ByVal moduleName As String, ByVal vbProj As VBProject, ByVal projectName As String, Optional ByRef outModuleTypeInfo As TypeInfo, Optional ByRef outITypeLib As LongPtr) As Object
     
     Dim referencesInstancePtr As LongPtr
-    referencesInstancePtr = ObjPtr(Application.VBE.ActiveVBProject.References)
+    referencesInstancePtr = ObjPtr(vbProj.References)
     Debug.Assert referencesInstancePtr <> 0
     
     'The references object instance looks like this, and has a raw pointer contained within it to the typelibs it uses
@@ -51,14 +51,14 @@ Public Function StdModuleAccessor(ByVal moduleName As String, ByVal project As S
     Do While typeLibPtrs.TryGetNext(projectTypeLib)
         Debug.Assert typeLibPtrs.tryGetCurrentRawITypeLibPtr(outITypeLib)
         Debug.Print "[LOG] " ; "Discovered: " ; projectTypeLib.name
-        If projectTypeLib.name = project Then
+        If projectTypeLib.name = projectName Then
             'we have found the project typelib, check for the correct module within it
             Dim moduleTI As TypeInfo
             If TryGetTypeInfo(projectTypeLib, moduleName, outTI:=moduleTI) Then
                 found = True
                 Exit Do
             Else
-                Err.Raise vbObjectError + 5, Description:="Module with name '" & moduleName & "' not found in project " & project
+                Err.Raise vbObjectError + 5, Description:="Module with name '" & moduleName & "' not found in project " & projectName
             End If
         End If
     Loop

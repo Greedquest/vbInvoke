@@ -25,32 +25,32 @@ Module Experiments
 
 	Public Sub testCallingPrivateMethod(ByVal wb As Excel.Workbook)
 		Dim exampleMod As Object
-		Set exampleMod = GetFancyAccessor("ExampleModule", wb.VBProject.Name)
+		Set exampleMod = GetFancyAccessor(wb.VBProject, "ExampleModule")
 		Debug.Assert exampleMod.Foo(2) = "HelloWorld!!"
 	End Sub
 
-	Public Sub testCallingErrorMethod()
+	Public Sub testCallingErrorMethod(ByVal wb As Excel.Workbook)
 		Dim thisMod As Object
-		Set thisMod = GetFancyAccessor("Experiments")
+		Set thisMod = GetFancyAccessor(wb.VBProject, "Experiments")
 		On Error Resume Next 'untrappable errors unfortunately, but also does not crash which is very good
 		thisMod.raisesError
 		Debug.Assert Err.Number = 5
 	End Sub
 
-	Public Sub testTerminateDoesNotCrash()
-		GetFancyAccessor("Experiments").terminate
+	Public Sub testTerminateDoesNotCrash(ByVal wb As Excel.Workbook)
+		GetFancyAccessor(wb.VBProject, "Experiments").terminate
 		Debug.Assert False 'unreachable
 	End Sub
 
-	Public Sub testModuleReflection()
+	Public Sub testModuleReflection(ByVal wb As Excel.Workbook)
 		Dim info As IModuleInfo
-		Set info = GetFancyAccessor("ExampleModule")
+		Set info = GetFancyAccessor(wb.VBProject, "ExampleModule")
 		Debug.Assert Join(info.ModuleFuncInfoMap.Keys()) = Join(Array("Foo", "Baz", "val")) 'val appears twice in module but only once here since it is a Let/Set
 	End Sub
 
-	Public Sub testProps()
+	Public Sub testProps(ByVal wb As Excel.Workbook)
 		test_val = 9
-		With GetFancyAccessor("Experiments")
+		With GetFancyAccessor(wb.VBProject,"Experiments")
 			.val = 1.7
 			Debug.Assert .val = 1.7
 		End With

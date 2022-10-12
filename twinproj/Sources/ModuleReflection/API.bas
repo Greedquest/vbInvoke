@@ -2,14 +2,14 @@ Attribute VB_Name = "API"
 '@Folder("TypeInfoInvoker")
 Option Explicit
 
-Public Function GetFancyAccessor(Optional ByVal moduleName As String = "ExampleModule", Optional ByVal projectName As Variant) As Object
+Public Function GetFancyAccessor(ByVal vbProj As VBProject, Optional ByVal moduleName As String = "ExampleModule", Optional ByVal projectName As Variant) As Object
     Dim project As String
-    project = IIf(IsMissing(projectName), Application.VBE.ActiveVBProject.Name, projectName)
+    project = IIf(IsMissing(projectName), vbProj.Name, projectName)
     
     Dim moduleTypeInfo As TypeInfo
     Dim accessor As Object
     Dim pITypeLib As LongPtr
-    Set accessor = StdModuleAccessor(moduleName, project, moduleTypeInfo, pITypeLib)
+    Set accessor = StdModuleAccessor(moduleName, vbProj, project, moduleTypeInfo, pITypeLib)
     
     'not sure why but not the same as moduleTypeInfo.ITypeInfo - different objects
     Dim moduleITypeInfo As IUnknown

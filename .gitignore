@@ -2,3 +2,7 @@
 *.twinproj
 
 *.doccls
+
+~$*.xlsm
+
+testing/callme.xlsm
