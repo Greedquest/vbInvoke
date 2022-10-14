@@ -141,7 +141,8 @@ Interface ITypeInfo Extends IUnknown
     'HRESULT  GetTypeAttr([out] TYPEATTR **ppTypeAttr )
     Sub GetTypeAttr(ByRef outpTypeAttr As LongPtr)
     Sub GetTypeComp()
-    Sub GetFuncDesc()
+    'HRESULT  GetFuncDesc([in] UINT index, [out] FUNCDESC **ppFuncDesc)
+    Sub GetFuncDesc(ByVal index As Long, ByRef outpFuncDesc As LongPtr)
     Sub GetVarDesc()
     Sub GetNames()
     Sub GetRefTypeOfImplType()
@@ -159,7 +160,9 @@ Interface ITypeInfo Extends IUnknown
     'void ITypeInfo::ReleaseTypeAttr( [in] TYPEATTR *pTypeAttr)
     [ PreserveSig ]
     Sub ReleaseTypeAttr(ByVal pTypeAttr As LongPtr)
-    Sub ReleaseFuncDesc()
+    [ PreserveSig ]
+    'void     ReleaseFuncDesc( [in] FUNCDESC *pFuncDesc)
+    Sub ReleaseFuncDesc(ByVal pFuncDesc As LongPtr)
     Sub ReleaseVarDesc()
 End Interface
 
@@ -220,7 +223,6 @@ Module TypeInfoHelper
     End Function
 
     Public Function getAttrs(ByVal ITypeInfo As ITypeInfo) As TYPEATTR
-        'HRESULT  GetTypeAttr([out] TYPEATTR **ppTypeAttr )
         Dim pTypeAttr As LongPtr
         ITypeInfo.GetTypeAttr pTypeAttr
 
@@ -228,28 +230,21 @@ Module TypeInfoHelper
         'REVIEW Is it safe? Does this make the info in the attrs structure invalid?
         CopyMemory getAttrs, ByVal pTypeAttr, LenB(getAttrs)
         
-        'void ITypeInfo::ReleaseTypeAttr( [in] TYPEATTR *pTypeAttr)
         ITypeInfo.ReleaseTypeAttr pTypeAttr
         pTypeAttr = NULL_PTR 'good practice to null released pointers so we don't accidentally use them
     End Function
 
-    Public Function getFuncDesc(ByVal ITypeInfo As IUnknown, ByVal index As Long) As FUNCDESC
-        'HRESULT  GetFuncDesc([in] UINT index, [out] FUNCDESC **ppFuncDesc)
-        Dim hresult As hResultCode
+    Public Function getFuncDesc(ByVal ITypeInfo As ITypeInfo, ByVal index As Long) As FUNCDESC
         Dim pFuncDesc As LongPtr
-        hresult = CallCOMObjectVTableEntry(ITypeInfo, ITypeInfoVTableOffset(ITypeInfoVTable.GetFuncDesc), CR_HRESULT, index, VarPtr(pFuncDesc))
-        If hresult <> S_OK Then Err.Raise hresult
+        ITypeInfo.GetFuncDesc index, pFuncDesc
         
         'logic same as in tryGetAttrs
         CopyMemory getFuncDesc, ByVal pFuncDesc, LenB(getFuncDesc)
         
-        'void     ReleaseFuncDesc( [in] FUNCDESC *pFuncDesc)
-        CallCOMObjectVTableEntry ITypeInfo, ITypeInfoVTableOffset(ITypeInfoVTable.ReleaseFuncDesc), CR_None, pFuncDesc
+        ITypeInfo.ReleaseFuncDesc pFuncDesc
         pFuncDesc = NULL_PTR
     End Function
 End Module
-
-
 
 
 Module TypeLibHelper
