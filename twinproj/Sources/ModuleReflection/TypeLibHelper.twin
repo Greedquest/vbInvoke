@@ -67,6 +67,7 @@
 '     ReleaseTLibAttr As LongPtr
 ' End Type: Public ITypeLibVTable As ITypeLibVTable
 
+[ InterfaceId ("00020402-0000-0000-C000-000000000046") ]
 Interface ITypeLib Extends IUnknown
     Function GetTypeInfoCount() As Long
     Sub GetTypeInfo(ByVal index As Long, ByRef outTI As ITypeInfo)
@@ -136,6 +137,7 @@ End Interface
 '     ReleaseFuncDesc As LongPtr
 '     ReleaseVarDesc As LongPtr
 ' End Type: Public ITypeInfoVTable As ITypeInfoVTable
+[InterfaceId("00020402-0000-0000-C000-000000000046")]
 Interface ITypeInfo Extends IUnknown
     
     'HRESULT  GetTypeAttr([out] TYPEATTR **ppTypeAttr )
@@ -258,6 +260,7 @@ Module TypeLibHelper
     End Function
 
     Public Function getProjName(ByVal ITypeLib As ITypeLib) As String
+        MsgBox "GET PROJ NAME for " & ObjPtr(ITypeLib)
         getProjName = getDocumentation(ITypeLib, KnownMemberIDs.MEMBERID_NIL)
     End Function
     
