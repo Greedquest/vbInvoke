@@ -11,17 +11,17 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Private Type TTypeInfo
-    ITypeInfo As IUnknown
+    ITypeInfo As ITypeInfo
 End Type
 
 Private this As TTypeInfo
 
-Public Property Get ITypeInfo() As IUnknown
+Public Property Get ITypeInfo() As ITypeInfo
     Debug.Assert Not this.ITypeInfo Is Nothing
     Set ITypeInfo = this.ITypeInfo
 End Property
 
-Public Property Set ITypeInfo(ByVal RHS As IUnknown)
+Public Property Set ITypeInfo(ByVal RHS As ITypeInfo)
     Set this.ITypeInfo = RHS
 End Property
 

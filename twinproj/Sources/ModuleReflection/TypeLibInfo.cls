@@ -11,7 +11,7 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Private Type TTypeLibInfo
-    ITypeLib As IUnknown
+    ITypeLib As ITypeLib
     typeInfos As TypeInfoCollection
 End Type
 
@@ -21,12 +21,12 @@ Public Property Get name() As String
     name = TypeLibHelper.getProjName(ITypeLib)
 End Property
 
-Public Property Get ITypeLib() As IUnknown
+Public Property Get ITypeLib() As ITypeLib
     Debug.Assert Not this.ITypeLib Is Nothing
     Set ITypeLib = this.ITypeLib
 End Property
 
-Public Property Set ITypeLib(ByVal RHS As IUnknown)
+Public Property Set ITypeLib(ByVal RHS As ITypeLib)
     Set this.ITypeLib = RHS
     Set this.typeInfos = TypeInfoCollection.Create(ITypeLib)
 End Property

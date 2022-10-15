@@ -16,7 +16,7 @@ Implements IModuleInfo 'Easy access to additional methods
 Private Declare PtrSafe Function SysReAllocString Lib "oleaut32.dll" (ByVal pBSTR As LongPtr, Optional ByVal pszStrPtr As LongPtr) As Long
 
 Public accessor As Object
-Public ITypeInfo As IUnknown
+Public ITypeInfo As ITypeInfo
 
 Private Sub Class_Initialize()
     Dim asDisp As IDispatchVB
@@ -36,7 +36,7 @@ Private Sub Class_Initialize()
     MemLongPtr(pInvokeOriginal) = MemLongPtr(pInvokeVB)
 End Sub
 
-Private Property Get funcs() as Dictionary
+Private Property Get funcs() As Dictionary
     'NOTE cached assuming you cannot modify typeinfo at all at runtime (i.e. you cannot edit a module while vba is running)
     'TODO Check if this holds True for VBComponents.Add
     Static result As Dictionary
@@ -75,7 +75,7 @@ Private Sub IDispatchVB_InvokeVB(ByVal dispIDMember As Long, ByVal riid As LongP
         )
 End Sub
 
-Private Property Get IModuleInfo_ExtendedITypeInfo() As IUnknown
+Private Property Get IModuleInfo_ExtendedITypeInfo() As ITypeInfo
     Set IModuleInfo_ExtendedITypeInfo = ITypeInfo
 End Property
 
