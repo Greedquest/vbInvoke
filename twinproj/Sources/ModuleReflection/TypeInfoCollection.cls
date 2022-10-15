@@ -31,22 +31,16 @@ End Property
 
 Private Function tryGenerateNext(ByRef outITypeInfo As TypeInfo) As Boolean
     Static i As Long 'zero indexed
-    If i >= this.count Then Exit Function
-    On Error Resume Next
-        Dim rawITypeInfo As ITypeInfo
-        
-        Set rawITypeInfo = TypeLibHelper.getITypeInfoByIndex(ITypeLib, i)
-        i = i + 1
-        
-        Dim noErrors As Boolean
-        noErrors = Err.Number = 0
-    On Error GoTo 0
+    If i >= this.count Then Return False
     
-    If noErrors Then
-        Set outITypeInfo = New TypeInfo
-        Set outITypeInfo.ITypeInfo = rawITypeInfo
-        tryGenerateNext = True
-    End If
+    'if there are errors here we want to know about them
+    Dim rawITypeInfo As ITypeInfo
+    Set rawITypeInfo = TypeLibHelper.getITypeInfoByIndex(ITypeLib, i)
+    i = i + 1
+
+    Set outITypeInfo = New TypeInfo
+    Set outITypeInfo.ITypeInfo = rawITypeInfo
+    Return True
 End Function
 
 Public Function Create(ByVal wrappedITypeLib As ITypeLib) As TypeInfoCollection
