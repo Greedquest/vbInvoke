@@ -1,0 +1,8 @@
+
+Class HelloWorldClass
+    
+    Public Sub Show()
+        MsgBox "Hello world!"
+    End Sub
+    
+End Class

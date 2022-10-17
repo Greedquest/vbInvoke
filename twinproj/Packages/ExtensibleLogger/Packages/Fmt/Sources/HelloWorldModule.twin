@@ -1,0 +1,8 @@
+
+Module HelloWorldModule
+
+    Public Sub Show()
+        MsgBox "Hello world!"
+    End Sub
+	
+End Module

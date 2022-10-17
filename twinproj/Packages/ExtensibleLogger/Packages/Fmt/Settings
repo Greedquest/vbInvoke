@@ -1,0 +1,47 @@
+{
+	"project.references": [
+		{
+			"id": "{00020430-0000-0000-C000-000000000046}",
+			"name": "OLE Automation",
+			"versionMajor": 2,
+			"versionMinor": 0,
+			"lcid": 0,
+			"path32": "C:\\Windows\\SysWOW64\\stdole2.tlb",
+			"path64": "C:\\Windows\\System32\\stdole2.tlb"
+		},
+		{
+			"id": "{3F4DACA7-160D-11D2-A8E9-00104B365C9F}",
+			"name": "Microsoft VBScript Regular Expressions 5.5",
+			"versionMajor": 5,
+			"versionMinor": 5,
+			"lcid": 0,
+			"path32": "C:\\Windows\\SysWOW64\\vbscript.dll\\3",
+			"path64": "C:\\Windows\\System32\\vbscript.dll\\3"
+		},
+		{
+			"id": "{420B2830-E718-11CF-893D-00A0C9054228}",
+			"name": "Microsoft Scripting Runtime",
+			"versionMajor": 1,
+			"versionMinor": 0,
+			"lcid": 0,
+			"path32": "C:\\Windows\\SysWOW64\\scrrun.dll",
+			"path64": "C:\\Windows\\System32\\scrrun.dll"
+		}
+	],
+	"project.name": "Fmt",
+	"project.description": "CSharpishStringFormater",
+	"configuration.inherits": "Defaults",
+	"project.buildType": "Package TWINPACK",
+	"project.buildPath": "${SourcePath}\\Build\\${ProjectName}_${Architecture}.${FileExtension}",
+	"runtime.useUnicodeStandardLibrary": true,
+	"project.optionExplicit": true,
+	"project.warnings": {
+		"ignored": [],
+		"errors": []
+	},
+	"project.id": "{D4B278FA-FE6F-4947-8461-6ECB35BD770A}",
+	"project.licence": "As per Code Review publication",
+	"project.versionMajor": 1,
+	"project.versionMinor": 0,
+	"project.packageVisibility": "PUBLIC"
+}

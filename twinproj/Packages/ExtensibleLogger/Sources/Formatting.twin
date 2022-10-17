@@ -1,0 +1,40 @@
+Interface ILogMessageFormatter
+	Function FormatMessage(ByVal level As LogLevel, ByVal loggerName As String, ByVal message As String) As String
+End Interface
+
+Class DefaultLogMessageFormatter
+
+    Implements ILogMessageFormatter
+
+    Private Function ILogMessageFormatter_FormatMessage(ByVal level As LogLevel, ByVal loggerName As String, ByVal message As String) As String
+        
+        'ILogMessageFormatter_FormatMessage = Framework.Strings.Format("{0:s}\t{1}\t[{2}]\t{3}", Now, loggerName, FormatLogLevel(level), message)
+        ILogMessageFormatter_FormatMessage = Fmt.StringFormat("{0:s}\t{1}\t[{2}]\t{3}", Now, loggerName, FormatLogLevel(level), message)
+    End Function
+
+    Private Function FormatLogLevel(ByVal level As LogLevel) As String
+
+        Select Case level
+
+        Case LogLevel.DebugLevel
+            FormatLogLevel = "DEBUG"
+
+        Case LogLevel.ErrorLevel
+            FormatLogLevel = "ERROR"
+
+        Case LogLevel.FatalLevel
+            FormatLogLevel = "FATAL"
+
+        Case LogLevel.InfoLevel
+            FormatLogLevel = "INFO"
+
+        Case LogLevel.TraceLevel
+            FormatLogLevel = "TRACE"
+
+        Case LogLevel.WarnLevel
+            FormatLogLevel = "WARNING"
+
+        End Select
+
+    End Function
+End Class

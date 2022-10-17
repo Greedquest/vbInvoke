@@ -1,7 +1,6 @@
 Attribute VB_Name = "VBETypeLib"
 '@Folder "TypeInfoInvoker"
 Option Explicit
-Option Private Module
 
 Public Type VBEReferencesObj
     vTable1 As LongPtr                           'To _References vtable
@@ -24,7 +23,18 @@ Public Type VBETypeLibObj
     Next As LongPtr
 End Type
 
+[ DllExport ]
+Public Sub boxIt(ByVal s As String)
+    boxIt s
+End Sub
 
+[ DllExport ]
+Public Function somethingSimple(ByVal x As String, ByVal proj As VBProject) As Object
+    MsgBox x & proj.Name
+    Return proj
+End Function
+
+[ DllExport ]
 Public Function StdModuleAccessor(ByVal moduleName As String, ByVal vbProj As VBProject, ByVal projectName As String, Optional ByRef outModuleTypeInfo As TypeInfo, Optional ByRef outITypeLib As LongPtr) As Object
     
     Dim referencesInstancePtr As LongPtr
