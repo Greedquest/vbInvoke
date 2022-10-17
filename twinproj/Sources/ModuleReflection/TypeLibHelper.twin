@@ -261,7 +261,7 @@ Module TypeLibHelper
     End Function
 
     Public Function getProjName(ByVal ITypeLib As ITypeLib) As String
-        MsgBox "GET PROJ NAME for " & ObjPtr(ITypeLib)
+        Logger.Log DebugLevel, "GET PROJ NAME for " & ObjPtr(ITypeLib)
         getProjName = getDocumentation(ITypeLib, KnownMemberIDs.MEMBERID_NIL)
     End Function
     
