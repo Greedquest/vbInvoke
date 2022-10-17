@@ -32,7 +32,7 @@ Public Sub DispInvokeMethod(ByVal accessor As Object, ByVal dispid As Long) 'ori
     '  [out]     EXCEPINFO  *pExcepInfo,
     '  [out] UINT * puArgErr
     ');
-    Debug.Print "INVOKED=" ; ObjPtr(accessor)
+    Logger.Log TraceLevel, "INVOKED= " & ObjPtr(accessor)
     Dim hresult As hResultCode
     On Error Resume Next
     hresult = CallFunction( _

@@ -69,6 +69,7 @@
 
 [ InterfaceId ("00020402-0000-0000-C000-000000000046") ]
 Interface ITypeLib Extends IUnknown
+    [ PreserveSig ]
     Function GetTypeInfoCount() As Long
     Sub GetTypeInfo(ByVal index As Long, ByRef outTI As ITypeInfo)
     Sub GetTypeInfoType()
@@ -137,7 +138,7 @@ End Interface
 '     ReleaseFuncDesc As LongPtr
 '     ReleaseVarDesc As LongPtr
 ' End Type: Public ITypeInfoVTable As ITypeInfoVTable
-[InterfaceId("00020402-0000-0000-C000-000000000046")]
+[ InterfaceId ("00020402-0000-0000-C000-000000000046") ]
 Interface ITypeInfo Extends IUnknown
     
     'HRESULT  GetTypeAttr([out] TYPEATTR **ppTypeAttr )

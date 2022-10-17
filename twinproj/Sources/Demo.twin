@@ -1,3 +1,14 @@
+Module Logging
+    Public Property Get Logger() As LogManager
+        Static isInitialised As Boolean
+        If Not isInitialised Then
+            LogManager.Register DebugLogger.Create("CallByNameEx", TraceLevel)
+            isInitialised = True
+        End If
+        Set Logger = LogManager
+    End Property
+End Module
+
 ' Module ExampleModule
 ' 	Option Explicit
 
@@ -18,8 +29,11 @@
 ' 	End Property
 ' End Module
 
+
 Module Experiments
-	Option Explicit
+
+   
+
 
 	Private test_val As Double
 
@@ -50,7 +64,7 @@ Module Experiments
 
 	Public Sub testProps(ByVal wb As Excel.Workbook)
 		test_val = 9
-		With GetFancyAccessor(wb.VBProject,"Experiments")
+		With GetFancyAccessor(wb.VBProject, "Experiments")
 			.val = 1.7
 			Debug.Assert .val = 1.7
 		End With

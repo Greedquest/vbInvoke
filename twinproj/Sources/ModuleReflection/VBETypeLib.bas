@@ -25,17 +25,19 @@ End Type
 
 [ DllExport ]
 Public Sub boxIt(ByVal s As String)
-    boxIt s
+    MsgBox s
 End Sub
 
 [ DllExport ]
 Public Function somethingSimple(ByVal x As String, ByVal proj As VBProject) As Object
-    MsgBox x & proj.Name
-    Return proj
+    Logger.Log InfoLevel, "Hello"
+    Return StdModuleAccessor(x, proj, proj.Name)
 End Function
 
-[ DllExport ]
+
 Public Function StdModuleAccessor(ByVal moduleName As String, ByVal vbProj As VBProject, ByVal projectName As String, Optional ByRef outModuleTypeInfo As TypeInfo, Optional ByRef outITypeLib As LongPtr) As Object
+    
+    Logger.Log DebugLevel, "Calling StdModuleAccessor"
     
     Dim referencesInstancePtr As LongPtr
     referencesInstancePtr = ObjPtr(vbProj.References)
@@ -60,11 +62,12 @@ Public Function StdModuleAccessor(ByVal moduleName As String, ByVal vbProj As VB
 
     Do While typeLibPtrs.TryGetNext(projectTypeLib)
         Debug.Assert typeLibPtrs.tryGetCurrentRawITypeLibPtr(outITypeLib)
-        Debug.Print "[LOG] " ; "Discovered: " ; projectTypeLib.name
+        LogManager.Log InfoLevel, "Discovered: " & projectTypeLib.name
         If projectTypeLib.name = projectName Then
             'we have found the project typelib, check for the correct module within it
             Dim moduleTI As TypeInfo
             If TryGetTypeInfo(projectTypeLib, moduleName, outTI:=moduleTI) Then
+                Logger.Log DebugLevel, "Got a typeinfo @" & ObjPtr(moduleTI)
                 found = True
                 Exit Do
             Else
