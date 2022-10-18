@@ -30,15 +30,12 @@ End Sub
 
 [ DllExport ]
 Public Function somethingSimple(ByVal x As String, ByVal proj As VBProject) As Object
-    Logger.Log InfoLevel, "Hello"
+    Logger.Log InfoLevel, "Invoking tB dll function..."
     Return StdModuleAccessor(x, proj, proj.Name)
 End Function
 
 
 Public Function StdModuleAccessor(ByVal moduleName As String, ByVal vbProj As VBProject, ByVal projectName As String, Optional ByRef outModuleTypeInfo As TypeInfo, Optional ByRef outITypeLib As LongPtr) As Object
-    
-    Logger.Log DebugLevel, "Calling StdModuleAccessor"
-    
     Dim referencesInstancePtr As LongPtr
     referencesInstancePtr = ObjPtr(vbProj.References)
     Debug.Assert referencesInstancePtr <> 0
