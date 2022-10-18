@@ -32,9 +32,6 @@ End Module
 
 Module Experiments
 
-   
-
-
 	Private test_val As Double
 
 	Public Sub testCallingPrivateMethod(ByVal wb As Excel.Workbook)

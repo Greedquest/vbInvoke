@@ -1,5 +1,0 @@
-Module Logging
-	Public Sub InitLogger()
-    	LogManager.Register DebugLogger.Create("vbInvoke", TraceLevel)
-	End Sub
-End Module
