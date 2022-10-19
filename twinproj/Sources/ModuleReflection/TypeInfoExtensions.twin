@@ -31,20 +31,3 @@ Interface IVBEComponent Extends IUnknown
     'Placeholder(1 To 19) As LongPtr
     'GetSomeRelatedTypeInfoPtrs As LongPtr
 End Interface
-
-
-' Module TypeInfoExtensions
-'     Option Explicit
-
-    
-
-'     '@Description("Invoke IVBEComponent::GetStdModAccessor - re-raise error codes as VBA errors")
-'     Public Function GetStdModAccessor(ByVal pIVBEComponent As LongPtr) As Object
-'     Attribute GetStdModAccessor.VB_Description = "Invoke IVBEComponent::GetStdModAccessor - re-raise error codes as VBA errors"
-'         Dim hresult As hResultCode
-'         hresult = CallFunction(pIVBEComponent, IVBEComponentVTableOffset(IVBEComponentVTable.GetStdModAccessor), CR_HRESULT, CC_STDCALL, VarPtr(GetStdModAccessor))
-'         If hresult = S_OK Then Exit Function
-'         Err.Raise hresult, "GetStdModAccessor", "Function did not succeed. IVBEComponent::GetStdModAccessor HRESULT: 0x" & Hex$(hresult)
-'     End Function
-
-' End Module
