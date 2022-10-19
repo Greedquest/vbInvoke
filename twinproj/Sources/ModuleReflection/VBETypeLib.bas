@@ -78,17 +78,14 @@ Public Function StdModuleAccessor(ByVal moduleName As String, ByVal vbProj As VB
     '   In RD this is done via Aggregation
     '   Meaning an object is made by merging the COM interface with a managed C# interface
     '   We don't have to worry about this, it is just to avoid some bug with C# reflection I think
-    Dim IVBEComponent As LongPtr
-    IVBEComponent = QueryInterface(moduleTI.ITypeInfo, InterfacesDict("IVBEComponent"))
     
-    'Call Function IVBEComponent::GetStdModAccessor() As IDispatch
-    Dim stdModAccessor As Object
-    Set stdModAccessor = GetStdModAccessor(IVBEComponent)
-    'ERROR: Failed to call VTable method. DispCallFunc HRESULT: 0x80004001 - E_NOTIMPL
+    Logger.Log DebugLevel, "Trying to cast object @" & ObjPtr(moduleTI.ITypeInfo)
+    Dim vbeComponent As IVBEComponent
+    Set vbeComponent = moduleTI.ITypeInfo
+    Logger.Log DebugLevel, "Got an IVBEComponent @" & ObjPtr(vbeComponent)
     
-    'return result
-    Set StdModuleAccessor = stdModAccessor
     Set outModuleTypeInfo = moduleTI
+    Set StdModuleAccessor = vbeComponent.GetStdModAccessor()
 
 End Function
 
