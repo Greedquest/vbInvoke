@@ -251,20 +251,20 @@ Module TypeInfoHelper
     End Function
 End Module
 
-Private Class TypeInfoCachingWrapper
-    Public ReadOnly ITypeInfo As ITypeInfo
+' Private Class TypeInfoCachingWrapper
+'     Public ReadOnly ITypeInfo As ITypeInfo
 
-    Public Property Get name() As String
-        name = getModName(ITypeInfo)
-    End Property
+'     Public Property Get name() As String
+'         name = getModName(ITypeInfo)
+'     End Property
 
-    Private Function attrs() As TYPEATTR
-        Static result As TYPEATTR
-        'check if already set
-        If result.aGUID.Data1 = 0 Then result = getAttrs(ITypeInfo)
-        attrs = result
-    End Function
-End Class
+'     Private Function attrs() As TYPEATTR
+'         Static result As TYPEATTR
+'         'check if already set
+'         If result.aGUID.Data1 = 0 Then result = getAttrs(ITypeInfo)
+'         attrs = result
+'     End Function
+' End Class
 
 Module TypeLibHelper
     Public Function getITypeInfoByIndex(ByVal ITypeLib As ITypeLib, ByVal index As Long) As ITypeInfo

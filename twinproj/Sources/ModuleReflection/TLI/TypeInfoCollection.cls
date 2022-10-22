@@ -19,15 +19,15 @@ End Type
 
 Private this As TTypeInfoCollection
 
-Public Property Get ITypeLib() As ITypeLib
-    Debug.Assert Not this.ITypeLib Is Nothing
-    Set ITypeLib = this.ITypeLib
-End Property
+' Public Property Get ITypeLib() As ITypeLib
+'     Debug.Assert Not this.ITypeLib Is Nothing
+'     Set ITypeLib = this.ITypeLib
+' End Property
 
 Public Property Set ITypeLib(ByVal RHS As ITypeLib)
     Set this.ITypeLib = RHS
-    this.count = TypeLibHelper.getTypeInfoCount(ITypeLib)
-    Logger.Log DebugLevel, "Typelib.count = " & this.count
+    this.count = TypeLibHelper.getTypeInfoCount(RHS)
+    Logger.Log DebugLevel, TypeLibHelper.getProjName(RHS) & " TypeInfo.count = " & this.count
 End Property
 
 Private Function tryGenerateNext(ByRef outITypeInfo As ITypeInfo) As Boolean
@@ -36,7 +36,7 @@ Private Function tryGenerateNext(ByRef outITypeInfo As ITypeInfo) As Boolean
     
     'if there are errors here we want to know about them
     Dim rawITypeInfo As ITypeInfo
-    Set rawITypeInfo = TypeLibHelper.getITypeInfoByIndex(ITypeLib, i)
+    Set rawITypeInfo = TypeLibHelper.getITypeInfoByIndex(this.ITypeLib, i)
     i = i + 1
 
     Set outITypeInfo = rawITypeInfo
