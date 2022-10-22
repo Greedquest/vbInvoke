@@ -143,31 +143,32 @@ Interface ITypeInfo Extends IUnknown
     
     'HRESULT  GetTypeAttr([out] TYPEATTR **ppTypeAttr )
     Sub GetTypeAttr(ByRef outpTypeAttr As LongPtr)
-    Sub GetTypeComp()
+    Sub DummyGetTypeComp()
     'HRESULT  GetFuncDesc([in] UINT index, [out] FUNCDESC **ppFuncDesc)
     Sub GetFuncDesc(ByVal index As Long, ByRef outpFuncDesc As LongPtr)
-    Sub GetVarDesc()
-    Sub GetNames()
-    Sub GetRefTypeOfImplType()
-    Sub GetImplTypeFlags()
-    Sub GetIDsOfNames()
-    Sub Invoke()
+    Sub DummyGetVarDesc()
+    Sub DummyGetNames()
+    Sub DummyGetRefTypeOfImplType()
+    Sub DummyGetImplTypeFlags()
+    Sub DummyGetIDsOfNames()
+    Sub DummyInvoke()
     'HRESULT  GetDocumentation( [in] MEMBERID memid, [out] BSTR *pBstrName, [out] BSTR *pBstrDocString, [out] DWORD *pdwHelpContext, [out] BSTR *pBstrHelpFile)
     Sub GetDocumentation(ByVal memid As DISPID, ByRef outName As String, Optional ByVal pBstrDocString As LongPtr = NULL_PTR, Optional ByVal pdwHelpContext As LongPtr = NULL_PTR, Optional ByVal pBstrHelpFile As LongPtr = NULL_PTR)
-    Sub GetDllEntry()
-    Sub GetRefTypeInfo()
-    Sub AddressOfMember()
-    Sub CreateInstance()
-    Sub GetMops()
-    Sub GetContainingTypeLib()
+    Sub DummyGetDllEntry()
+    Sub DummyGetRefTypeInfo()
+    Sub DummyAddressOfMember()
+    Sub DummyCreateInstance()
+    Sub DummyGetMops()
+    Sub DummyGetContainingTypeLib()
     'void ITypeInfo::ReleaseTypeAttr( [in] TYPEATTR *pTypeAttr)
     [ PreserveSig ]
     Sub ReleaseTypeAttr(ByVal pTypeAttr As LongPtr)
     [ PreserveSig ]
     'void     ReleaseFuncDesc( [in] FUNCDESC *pFuncDesc)
     Sub ReleaseFuncDesc(ByVal pFuncDesc As LongPtr)
-    Sub ReleaseVarDesc()
+    Sub DummyReleaseVarDesc()
 End Interface
+
 
 Module TypeInfoHelper
 	'Created by JAAFAR
@@ -192,7 +193,7 @@ Module TypeInfoHelper
             Dim funcName As String
             funcName = getFuncNameFromDescriptor(ITypeInfo, funcDescriptior)
             With funcDescriptior
-                Debug.Print "[INFO] " ; funcName & vbTab & Switch( _
+                Logger.Log InfoLevel, funcName & vbTab & Switch( _
                     .INVOKEKIND = INVOKE_METHOD, "VbMethod", _
                     .INVOKEKIND = INVOKE_PROPERTYGET, "VbGet", _
                     .INVOKEKIND = INVOKE_PROPERTYPUT, "VbLet", _
@@ -221,6 +222,7 @@ Module TypeInfoHelper
     Public Function getModName(ByVal ITypeInfo As ITypeInfo) As String
         getModName = getDocumentation(ITypeInfo, KnownMemberIDs.MEMBERID_NIL)
     End Function
+    
     Private Function getDocumentation(ByVal ITypeInfo As ITypeInfo, ByVal memid As DISPID) As String
         ITypeInfo.GetDocumentation memid, getDocumentation
     End Function
@@ -249,6 +251,20 @@ Module TypeInfoHelper
     End Function
 End Module
 
+Private Class TypeInfoCachingWrapper
+    Public ReadOnly ITypeInfo As ITypeInfo
+
+    Public Property Get name() As String
+        name = getModName(ITypeInfo)
+    End Property
+
+    Private Function attrs() As TYPEATTR
+        Static result As TYPEATTR
+        'check if already set
+        If result.aGUID.Data1 = 0 Then result = getAttrs(ITypeInfo)
+        attrs = result
+    End Function
+End Class
 
 Module TypeLibHelper
     Public Function getITypeInfoByIndex(ByVal ITypeLib As ITypeLib, ByVal index As Long) As ITypeInfo

@@ -31,6 +31,6 @@ Public Property Set ITypeLib(ByVal RHS As ITypeLib)
     Set this.typeInfos = TypeInfoCollection.Create(ITypeLib)
 End Property
 
-Public Function getTypeInfoByName(ByVal name As String) As TypeInfo
+Public Function getTypeInfoByName(ByVal name As String) As ITypeInfo
     Set getTypeInfoByName = this.typeInfos.Find(name)
 End Function

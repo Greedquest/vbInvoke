@@ -1,0 +1,186 @@
+
+' '<Summary> An internal interface exposed by VBA for all components (modules, class modules, etc)
+'     '<remarks> This internal interface is known to be supported since the very earliest version of VBA6
+'     '[ComImport(), Guid("DDD557E1-D96F-11CD-9570-00AA0051E5D4")]
+'     '[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+'     'Public Enum IVBEComponentVTableOffsets           '+3 for the IUnknown
+'     '    CompileComponentOffset = 12 + 3              'void CompileComponent();
+'     '    GetStdModAccessorOffset = 14 + 3             'IDispatch GetStdModAccessor();
+'     '    GetSomeRelatedTypeInfoPtrsOffset = 34 + 3    'void GetSomeRelatedTypeInfoPtrs(out IntPtr a, out IntPtr b);        // returns 2 TypeInfos, seemingly related to this ITypeInfo, but slightly different.
+'     'End Enum
+
+[ InterfaceId ("DDD557E1-D96F-11CD-9570-00AA0051E5D4") ]
+Interface IVBEComponent Extends IUnknown
+	Sub Placeholder01()
+    Sub Placeholder02()
+    Sub Placeholder03()
+    Sub Placeholder04()
+    Sub Placeholder05()
+    Sub Placeholder06()
+    Sub Placeholder07()
+    Sub Placeholder08()
+    Sub Placeholder09()
+    Sub Placeholder10()
+    Sub Placeholder11()
+    Sub Placeholder12()
+    '[ PreserveSig ] I'm sceptical
+    Sub CompileComponent()
+    Sub Placeholder13()
+    'apparently it's HRESULT & RD is a bit misleading, so no PreserveSig here
+    Function GetStdModAccessor() As Object
+    'Placeholder(1 To 19) As LongPtr
+    'GetSomeRelatedTypeInfoPtrs As LongPtr
+End Interface
+
+Private Class VBETypeLibIterator
+	Private Type TIterator
+        currentTL As VBETypeLibObj
+        pCurrentTL As LongPtr
+    End Type
+
+    Private this As TIterator
+
+    Public Property Let baseTypeLib(ByVal rawptr As LongPtr)
+        currentTL = rawptr
+        ResetIteration
+    End Property
+
+    Private Property Let currentTL(ByVal rawptr As LongPtr)
+        this.pCurrentTL = rawptr
+        CopyMemory this.currentTL, ByVal rawptr, LenB(this.currentTL)
+    End Property
+
+    Public Sub ResetIteration()
+        Do While this.currentTL.Prev <> 0
+            currentTL = this.currentTL.Prev
+        Loop
+    End Sub
+
+    Private Function NextTypeLib() As LongPtr
+        If this.currentTL.Next = 0 Then Err.Raise 5, Description:="We've reached the end of the line"
+        NextTypeLib = this.currentTL.Next
+        currentTL = this.currentTL.Next 'move the iterator along
+    End Function
+
+    '@Description("Gets type library com objects from list")
+    Public Function TryGetNext(ByRef outTypeLib As TypeLibInfo) As Boolean
+    Attribute TryGetNext.VB_Description = "Gets type library com objects from list"
+        On Error GoTo cleanFail
+        Dim tlPtr As LongPtr
+        tlPtr = NextTypeLib
+        Set outTypeLib = TLI.TypeLibInfoFromITypeLib(TypeLibFromObjPtr(tlPtr))
+        TryGetNext = True
+        
+    cleanExit:
+        Exit Function
+        
+    cleanFail:
+        TryGetNext = False
+        Set outTypeLib = Nothing
+        Resume cleanExit
+    End Function
+
+    '@Description("Returns the raw ITypeLib interface; this is because TLI.TypeLibInfo is a slightly more restricted view than the pointer here and hides private members")
+    Public Function tryGetCurrentRawITypeLibPtr(ByRef outITypeLib As LongPtr) As Boolean
+        If this.pCurrentTL <= 0 Then Exit Function
+        outITypeLib = this.pCurrentTL
+        tryGetCurrentRawITypeLibPtr = True
+    End Function
+End Class
+
+Module VBETypeLib
+	Private Type VBEReferencesObj
+        vTable1 As LongPtr                           'To _References vtable
+        vTable2 As LongPtr
+        vTable3 As LongPtr
+        object1 As LongPtr
+        object2 As LongPtr
+        typeLib As LongPtr
+        placeholder1 As LongPtr
+        placeholder2 As LongPtr
+        RefCount As LongPtr
+    End Type
+
+    Public Type VBETypeLibObj
+        vTable1 As LongPtr                           'To ITypeLib vtable
+        vTable2 As LongPtr
+        vTable3 As LongPtr
+        Prev As LongPtr
+        '@Ignore KeywordsUsedAsMember: Looks nice, sorry ThunderFrame
+        Next As LongPtr
+    End Type
+
+    [ DllExport ]
+    Public Sub boxIt(ByVal s As String)
+        MsgBox s
+    End Sub
+
+    [ DllExport ]
+    Public Function somethingSimple(ByVal x As String, ByVal proj As VBProject) As Object
+        Logger.Log InfoLevel, "Invoking tB dll function..."
+        Return StdModuleAccessor(x, proj, proj.Name)
+    End Function
+
+
+    Public Function StdModuleAccessor(ByVal moduleName As String, ByVal vbProj As VBProject, ByVal projectName As String, Optional ByRef outModuleTypeInfo As ITypeInfo, Optional ByRef outITypeLib As LongPtr) As Object
+        Dim referencesInstancePtr As LongPtr
+        referencesInstancePtr = ObjPtr(vbProj.References)
+        Debug.Assert referencesInstancePtr <> 0
+        
+        'The references object instance looks like this, and has a raw pointer contained within it to the typelibs it uses
+        Dim refData As VBEReferencesObj
+        CopyMemory refData, ByVal referencesInstancePtr, LenB(refData)
+        Debug.Assert refData.vTable1 = MemLongPtr(referencesInstancePtr)
+        
+        Dim typeLibInstanceTable As VBETypeLibObj
+        CopyMemory typeLibInstanceTable, ByVal refData.typeLib, LenB(typeLibInstanceTable)
+
+        'Create a class to iterate over the doubly linked list
+        Dim typeLibPtrs As New VBETypeLibIterator
+        typeLibPtrs.baseTypeLib = refData.typeLib
+        
+        'Now we could use proj.module.sub to find something in particular
+        'For now though, we just want a reference to the typeInfo for the ExampleModule
+        Dim projectTypeLib As TypeLibInfo
+        Dim found As Boolean
+
+        Do While typeLibPtrs.TryGetNext(projectTypeLib)
+            Debug.Assert typeLibPtrs.tryGetCurrentRawITypeLibPtr(outITypeLib)
+            LogManager.Log InfoLevel, "Discovered: " & projectTypeLib.name
+            If projectTypeLib.name = projectName Then
+                'we have found the project typelib, check for the correct module within it
+                Dim moduleTI As ITypeInfo
+                If TryGetTypeInfo(projectTypeLib, moduleName, outTI:=moduleTI) Then
+                    Logger.Log DebugLevel, "Got a typeinfo @" & ObjPtr(moduleTI)
+                    found = True
+                    Exit Do
+                Else
+                    Err.Raise vbObjectError + 5, Description:="Module with name '" & moduleName & "' not found in project " & projectName
+                End If
+            End If
+        Loop
+        If Not found Then Err.Raise vbObjectError + 5, Description:="No project found with that name"
+
+        'Cast to IVBEComponent Guid("DDD557E1-D96F-11CD-9570-00AA0051E5D4")
+        '   In RD this is done via Aggregation
+        '   Meaning an object is made by merging the COM interface with a managed C# interface
+        '   We don't have to worry about this, it is just to avoid some bug with C# reflection I think
+        
+        Logger.Log DebugLevel, "Trying to cast object @" & ObjPtr(moduleTI)
+        Dim vbeComponent As IVBEComponent
+        Set vbeComponent = moduleTI
+        Logger.Log DebugLevel, "Got an IVBEComponent @" & ObjPtr(vbeComponent)
+        
+        Set outModuleTypeInfo = moduleTI
+        Set StdModuleAccessor = vbeComponent.GetStdModAccessor()
+
+    End Function
+
+    Private Function TryGetTypeInfo(ByVal typeLib As TypeLibInfo, ByVal moduleName As String, ByRef outTI As ITypeInfo) As Boolean
+        On Error Resume Next
+        Set outTI = typeLib.getTypeInfoByName(moduleName)
+        TryGetTypeInfo = Err.Number = 0
+        On Error GoTo 0
+    End Function
+
+End Module

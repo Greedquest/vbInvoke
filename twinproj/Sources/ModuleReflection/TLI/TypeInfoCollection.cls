@@ -30,7 +30,7 @@ Public Property Set ITypeLib(ByVal RHS As ITypeLib)
     Logger.Log DebugLevel, "Typelib.count = " & this.count
 End Property
 
-Private Function tryGenerateNext(ByRef outITypeInfo As TypeInfo) As Boolean
+Private Function tryGenerateNext(ByRef outITypeInfo As ITypeInfo) As Boolean
     Static i As Long 'zero indexed
     If i >= this.count Then Return False
     
@@ -39,8 +39,7 @@ Private Function tryGenerateNext(ByRef outITypeInfo As TypeInfo) As Boolean
     Set rawITypeInfo = TypeLibHelper.getITypeInfoByIndex(ITypeLib, i)
     i = i + 1
 
-    Set outITypeInfo = New TypeInfo
-    Set outITypeInfo.ITypeInfo = rawITypeInfo
+    Set outITypeInfo = rawITypeInfo
     Return True
 End Function
 
@@ -50,13 +49,14 @@ Public Function Create(ByVal wrappedITypeLib As ITypeLib) As TypeInfoCollection
     Set Create = result
 End Function
 
-Public Function Find(ByVal name As String) As TypeInfo
+Public Function Find(ByVal name As String) As ITypeInfo
     Logger.Log TraceLevel, "Find ... " & name
     Do While Not this.typeInfos.Exists(name)
-        Dim wrappedTI As TypeInfo
+        Dim wrappedTI As ITypeInfo
         If Not tryGenerateNext(wrappedTI) Then Err.Raise 5, Description:="That name can't be found"
-        Logger.Log DebugLevel, "found ti for " & wrappedTI.name
-        this.typeInfos.Add wrappedTI.name, wrappedTI
+        Dim tiName As String = TypeInfoHelper.getModName(wrappedTI)
+        Logger.Log DebugLevel, "found ti for " & tiName
+        this.typeInfos.Add tiName, wrappedTI
     Loop
     Set Find = this.typeInfos.Item(name)
 End Function
