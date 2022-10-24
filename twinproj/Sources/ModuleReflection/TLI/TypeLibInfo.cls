@@ -28,9 +28,14 @@ End Property
 
 Public Property Set ITypeLib(ByVal RHS As ITypeLib)
     Set this.ITypeLib = RHS
-    Set this.typeInfos = TypeInfoCollection.Create(ITypeLib)
+    Set this.typeInfos = New TypeInfoCollection(ITypeLib)
 End Property
 
 Public Function getTypeInfoByName(ByVal name As String) As ITypeInfo
-    Set getTypeInfoByName = this.typeInfos.Find(name)
+    On Error GoTo logErr
+    Return this.typeInfos.Find(name)
+    
+    logErr:
+    Logger.Log ErrorLevel, printf("Find raised error {}: {}", Err.Number, Err.Description)
+    Err.Raise Err.Number
 End Function

@@ -66,15 +66,3 @@ Interface IDispatch Extends IUnknown
 End Interface
 
 
-
-Class Thing
-    Implements IDispatch
-    
-    Private Sub IDispatch_GetTypeInfoCount()
-        
-    End Sub
-    
-    
-
-	
-End Class

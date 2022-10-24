@@ -7,6 +7,25 @@ Module Logging
         End If
         Set Logger = LogManager
     End Property
+    
+    Public Function printf(ByVal mask As String, ParamArray tokens() As Variant) As String
+        Dim i As Long
+        For i = 0 To UBound(tokens)
+            Dim escapedToken As String
+            escapedToken = Replace$(tokens(i), "}", "\}") 'only need to replace closing bracket since {i\} is already invalid
+            If InStr(1, mask, "{}") <> 0 Then
+                'use positional mode {}
+                mask = Replace$(mask, "{}", escapedToken, Count:=1)
+            
+            Else
+                'use indexed mode {i}
+                mask = Replace$(mask, "{" & i & "}", escapedToken)
+            
+            End If
+        Next
+        mask = Replace$(mask, "\}", "}")
+        printf = mask
+    End Function
 End Module
 
 ' Module ExampleModule

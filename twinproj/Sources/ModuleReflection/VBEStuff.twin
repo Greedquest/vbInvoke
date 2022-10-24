@@ -180,6 +180,7 @@ Module VBETypeLib
         On Error Resume Next
         Set outTI = typeLib.getTypeInfoByName(moduleName)
         TryGetTypeInfo = Err.Number = 0
+        If Err.Number <> 0 Then Logger.Log ErrorLevel, "Couldn't get typeinfo - " & Err.Description
         On Error GoTo 0
     End Function
 

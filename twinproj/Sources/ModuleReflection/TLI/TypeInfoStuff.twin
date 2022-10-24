@@ -1,0 +1,53 @@
+Private Class TypeInfoCollection
+    Public ReadOnly typeLib As ITypeLib
+    Private ReadOnly typeInfoCount As long
+    Private typeInfos As Scripting.Dictionary = New dictionary
+    
+    
+    Public Sub New(ByVal wrappedITypeLib As ITypeLib)
+        Set typeLib = wrappedITypeLib
+        typeInfoCount = getTypeInfoCount(typeLib)
+    End Sub
+    
+
+    ' Public Property Set ITypeLib(ByVal RHS As ITypeLib)
+    '     Set this.ITypeLib = RHS
+    '     this.count = TypeLibHelper.getTypeInfoCount(RHS)
+    '     Logger.Log DebugLevel, TypeLibHelper.getProjName(RHS) & " TypeInfo.count = " & this.count
+    ' End Property
+
+    Private Function tryGenerateNext(ByRef outITypeInfo As ITypeInfo) As Boolean
+        Static i As Long 'zero indexed
+        Logger.Log DebugLevel, printf("tryGenerate ti {}", i)
+        If i >= typeInfoCount Then Return False
+        
+        'if there are errors here we want to know about them
+        Dim rawITypeInfo As ITypeInfo
+        Set rawITypeInfo = TypeLibHelper.getITypeInfoByIndex(typeLib, i)
+        i = i + 1
+
+        Set outITypeInfo = rawITypeInfo
+        Return True
+    End Function
+
+
+
+    Public Function Find(ByVal name As String) As ITypeInfo
+        Logger.Log DebugLevel, "Finding: " & name
+        Do While Not typeInfos.Exists(name)
+            Logger.Log TraceLevel, "Loop"
+            Dim wrappedTI As ITypeInfo
+            If Not tryGenerateNext(wrappedTI) Then Err.Raise 5, Description:="That name can't be found"
+            Dim tiName As String = TypeInfoHelper.getModName(wrappedTI)
+            Logger.Log DebugLevel, "Dict: " & Join(typeInfos.Keys, ", ")
+            Logger.Log DebugLevel, printf("found ti for {} @{}", tiName, ObjPtr(wrappedTI))
+            Logger.Log InfoLevel, printf("Got a thing '{}'", TypeName(wrappedTI))
+            
+            typeInfos.Add tiName, wrappedTI
+            Logger.Log TraceLevel, "Added"
+        Loop
+        Logger.Log DebugLevel, "Found it!"
+        Set Find = typeInfos.Item(name)
+    End Function
+
+End Class
