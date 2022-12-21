@@ -67,6 +67,7 @@
 '     ReleaseTLibAttr As LongPtr
 ' End Type: Public ITypeLibVTable As ITypeLibVTable
 
+
 [ InterfaceId ("00020402-0000-0000-C000-000000000046") ]
 Interface ITypeLib Extends IUnknown
     [ PreserveSig ]
@@ -138,7 +139,10 @@ End Interface
 '     ReleaseFuncDesc As LongPtr
 '     ReleaseVarDesc As LongPtr
 ' End Type: Public ITypeInfoVTable As ITypeInfoVTable
-[ InterfaceId ("00020402-0000-0000-C000-000000000046") ]
+
+
+
+[ InterfaceId ("00020401-0000-0000-C000-000000000046") ]
 Interface ITypeInfo Extends IUnknown
     
     'HRESULT  GetTypeAttr([out] TYPEATTR **ppTypeAttr )

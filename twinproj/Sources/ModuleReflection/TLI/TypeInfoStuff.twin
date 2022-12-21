@@ -1,7 +1,7 @@
 Private Class TypeInfoCollection
     Public ReadOnly typeLib As ITypeLib
     Private ReadOnly typeInfoCount As long
-    Private typeInfos As Scripting.Dictionary = New dictionary
+    Private typeInfos As KeyedCollection = New KeyedCollection
     
     
     Public Sub New(ByVal wrappedITypeLib As ITypeLib)
@@ -9,12 +9,6 @@ Private Class TypeInfoCollection
         typeInfoCount = getTypeInfoCount(typeLib)
     End Sub
     
-
-    ' Public Property Set ITypeLib(ByVal RHS As ITypeLib)
-    '     Set this.ITypeLib = RHS
-    '     this.count = TypeLibHelper.getTypeInfoCount(RHS)
-    '     Logger.Log DebugLevel, TypeLibHelper.getProjName(RHS) & " TypeInfo.count = " & this.count
-    ' End Property
 
     Private Function tryGenerateNext(ByRef outITypeInfo As ITypeInfo) As Boolean
         Static i As Long 'zero indexed
@@ -41,13 +35,21 @@ Private Class TypeInfoCollection
             Dim tiName As String = TypeInfoHelper.getModName(wrappedTI)
             Logger.Log DebugLevel, "Dict: " & Join(typeInfos.Keys, ", ")
             Logger.Log DebugLevel, printf("found ti for {} @{}", tiName, ObjPtr(wrappedTI))
-            Logger.Log InfoLevel, printf("Got a thing '{}'", TypeName(wrappedTI))
-            
-            typeInfos.Add tiName, wrappedTI
+            'Logger.Log InfoLevel, printf("Got a thing '{}'", TypeName(wrappedTI))
+            'Logger.Log InfoLevel, "Dict is called " & TypeName(typeInfos)
+            Logger.Log TraceLevel, "Just here"
+            ' typeInfos.Item("foo") = "bar"
+            ' Logger.Log TraceLevel, "Added foobar"
+            Dim anotherInterface As Variant
+            Set anotherInterface = wrappedTI
+            Logger.Log TraceLevel, "convert to variant"
+            typeInfos.Add tiName, anotherInterface
             Logger.Log TraceLevel, "Added"
         Loop
         Logger.Log DebugLevel, "Found it!"
-        Set Find = typeInfos.Item(name)
+        Logger.Log DebugLevel, "Dict: " & Join(typeInfos.Keys, ", ")
+        Dim result As Variant = typeInfos.Item(name)
+        Return result
     End Function
 
 End Class
