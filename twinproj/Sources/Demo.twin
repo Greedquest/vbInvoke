@@ -26,6 +26,16 @@ Module Logging
         mask = Replace$(mask, "\}", "}")
         printf = mask
     End Function
+    
+    Public Sub Assert(ByVal condition As Boolean, Optional ByVal message As String, Optional ByVal customLog As LogManager)
+        If Not condition Then
+            With If(customLog Is Nothing, Logger, customLog)
+                Dim errorInfo As String = printf("Assert failed {}", message)
+                .log FatalLevel, errorInfo
+                Err.Raise 5, description:=errorInfo
+            End With
+        End If
+    End Sub
 End Module
 
 ' Module ExampleModule
@@ -56,7 +66,7 @@ Module Experiments
 	Public Sub testCallingPrivateMethod(ByVal wb As Excel.Workbook)
 		Dim exampleMod As Object
 		Set exampleMod = GetFancyAccessor(wb.VBProject, "ExampleModule")
-		Debug.Assert exampleMod.Foo(2) = "HelloWorld!!"
+		Assert exampleMod.Foo(2) = "HelloWorld!!"
 	End Sub
 
 	Public Sub testCallingErrorMethod(ByVal wb As Excel.Workbook)
@@ -64,25 +74,25 @@ Module Experiments
 		Set thisMod = GetFancyAccessor(wb.VBProject, "Experiments")
 		On Error Resume Next 'untrappable errors unfortunately, but also does not crash which is very good
 		thisMod.raisesError
-		Debug.Assert Err.Number = 5
+		Assert Err.Number = 5
 	End Sub
 
 	Public Sub testTerminateDoesNotCrash(ByVal wb As Excel.Workbook)
 		GetFancyAccessor(wb.VBProject, "Experiments").terminate
-		Debug.Assert False 'unreachable
+		Assert False 'unreachable
 	End Sub
 
 	Public Sub testModuleReflection(ByVal wb As Excel.Workbook)
 		Dim info As IModuleInfo
 		Set info = GetFancyAccessor(wb.VBProject, "ExampleModule")
-		Debug.Assert Join(info.ModuleFuncInfoMap.Keys()) = Join(Array("Foo", "Baz", "val")) 'val appears twice in module but only once here since it is a Let/Set
+		Assert Join(info.ModuleFuncInfoMap.Keys()) = Join(Array("Foo", "Baz", "val")) 'val appears twice in module but only once here since it is a Let/Set
 	End Sub
 
 	Public Sub testProps(ByVal wb As Excel.Workbook)
 		test_val = 9
 		With GetFancyAccessor(wb.VBProject, "Experiments")
 			.val = 1.7
-			Debug.Assert .val = 1.7
+			Assert .val = 1.7
 		End With
 	End Sub
 

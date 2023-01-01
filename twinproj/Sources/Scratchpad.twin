@@ -65,4 +65,275 @@ Interface IDispatch Extends IUnknown
     Sub Invoke()
 End Interface
 
+Module TempVtables
 
+    Public Type IUnknownVTable
+        QueryInterface As LongPtr
+        AddRef As LongPtr
+        ReleaseRef As LongPtr
+    End Type: Public IUnknownVTable As IUnknownVTable
+
+    Public Type IDispatchVTable
+        IUnknown As IUnknownVTable
+        GetTypeInfoCount As LongPtr
+        GetTypeInfo As LongPtr
+        GetIDsOfNames As LongPtr
+        Invoke As LongPtr
+    End Type: Public IDispatchVTable As IDispatchVTable
+    
+    Public Type IDispatchVBVTable
+        IDispatch As IDispatchVTable
+        GetIDsOfNamesVB As LongPtr
+        InvokeVB As LongPtr
+    End Type: Public IDispatchVBVTable As IDispatchVBVTable
+
+    Public Property Get IUnknownVTableOffset(ByRef member As LongPtr) As LongPtr
+        IUnknownVTableOffset = VarPtr(member) - VarPtr(IUnknownVTable)
+    End Property
+
+    Public Property Get IDispatchVTableOffset(ByRef member As LongPtr) As LongPtr
+        IDispatchVTableOffset = VarPtr(member) - VarPtr(IDispatchVTable)
+    End Property
+    
+    Public Property Get IDispatchVBVTableOffset(ByRef member As LongPtr) As LongPtr
+        IDispatchVBVTableOffset = VarPtr(member) - VarPtr(IDispatchVBVTable)
+    End Property
+	
+End Module
+
+Module MemoryProtection
+	Public Enum VirtualProtectFlags                 'See Memory Protection constants: https://docs.microsoft.com/en-gb/windows/win32/memory/memory-protection-constants
+        PAGE_EXECUTE_READWRITE = &H40
+        PAGE_READONLY = &H2
+        RESET_TO_PREVIOUS = -1
+    End Enum
+    
+    Private Enum BOOL
+        API_FALSE = 0
+        'Use NOT (result = API_FALSE) for API_TRUE, as TRUE is just non-zero
+    End Enum
+    
+    Private Declare PtrSafe Function VirtualProtect Lib "kernel32" (ByRef location As Any, ByVal numberOfBytes As Long, ByVal newProtectionFlags As VirtualProtectFlags, ByVal lpOldProtectionFlags As LongPtr) As BOOL
+
+    Public Static Function ToggleMemoryProtection(ByVal address As LongPtr, ByVal numberOfBytes As Long, Optional ByVal newMemoryFlag As VirtualProtectFlags = RESET_TO_PREVIOUS) As Boolean
+        Dim previousMemoryState As VirtualProtectFlags
+        Dim unprotectWasNOOP As Boolean
+        If newMemoryFlag = RESET_TO_PREVIOUS Then
+            If unprotectWasNOOP Then
+                ToggleMemoryProtection = True
+            Else
+                ToggleMemoryProtection = VirtualProtect(ByVal address, numberOfBytes, previousMemoryState, VarPtr(newMemoryFlag)) <> API_FALSE
+            End If
+        Else
+            ToggleMemoryProtection = VirtualProtect(ByVal address, numberOfBytes, newMemoryFlag, VarPtr(previousMemoryState)) <> API_FALSE
+            'check whether unprotecting even had an effect - if not then no need to toggle back
+            unprotectWasNOOP = newMemoryFlag = previousMemoryState
+        End If
+    End Function
+
+
+End Module
+[ COMCreatable (False) ]
+Class SwapClassEX
+
+    Implements IDispatchVB 'For the VTable swap
+    Implements IModuleInfo 'Easy access to additional methods
+
+    
+    Private Declare PtrSafe Function SysReAllocString Lib "oleaut32.dll" (ByVal pBSTR As LongPtr, Optional ByVal pszStrPtr As LongPtr) As Long
+
+    Private ReadOnly Accessor As IDispatch
+    Private ReadOnly ExtendedTypeInfo As IUnknown
+
+    Private Sub New(ByVal accessor As IDispatch, ByVal moduleTypeInfo As IUnknown)
+        Set Me.Accessor = accessor
+        Set ExtendedTypeInfo = moduleTypeInfo
+        Logger.Log(TraceLevel, "Creating SwapClass")
+                
+        Dim asIDispVb As IDispatchVB = Me
+        'Dim asObj As IDispatch = Me
+        
+        Dim pAsDispVT As LongPtr = MemLongPtr(ObjPtr(asIDispVb))
+        Dim pInvokeVB As LongPtr, pInvokeOriginal As LongPtr
+        pInvokeVB = pAsDispVT + IDispatchVBVTableOffset(IDispatchVBVTable.InvokeVB)
+        pInvokeOriginal = pAsDispVT + IDispatchVBVTableOffset(IDispatchVBVTable.IDispatch.Invoke)
+        
+        Dim pGetIDsOfNamesVB As LongPtr, pGetIDsOfNamesOriginal As LongPtr
+        pGetIDsOfNamesVB = pAsDispVT + IDispatchVBVTableOffset(IDispatchVBVTable.GetIDsOfNamesVB)
+        pGetIDsOfNamesOriginal = pAsDispVT + IDispatchVBVTableOffset(IDispatchVBVTable.IDispatch.GetIDsOfNames)
+        
+        'swap the vtable entries
+        Logger.Log DebugLevel, "About to swap the memory"
+        Logger.Log DebugLevel, printf("invoke {} -> {}, getIDs {} -> {}", pInvokeOriginal, pInvokeVB, pGetIDsOfNamesOriginal, pGetIDsOfNamesVB)
+        
+        If ToggleMemoryProtection(pAsDispVT, LenB(IDispatchVBVTable), PAGE_EXECUTE_READWRITE) Then
+            MemLongPtr(pGetIDsOfNamesOriginal) = MemLongPtr(pGetIDsOfNamesVB)
+            MemLongPtr(pInvokeOriginal) = MemLongPtr(pInvokeVB)
+            ToggleMemoryProtection pAsDispVT, LenB(IDispatchVBVTable)
+        Else
+            Logger.Log FatalLevel, "Unable to unprotect memory"
+            Err.Raise 5
+        End If
+        
+        
+        
+        ' Dim pObjVT As LongPtr = MemLongPtr(ObjPtr(asObj))
+        ' Dim GetIdOfNamesSlot As LongPtr = UnsignedAdd(pObjVT, LibMemory.PTR_SIZE * 5) '0,1,2 IUnk 3,4,5,6
+        ' Dim InvokeSlot As LongPtr = UnsignedAdd(pObjVT, LibMemory.PTR_SIZE * 6)
+        ' Logger.Log(DebugLevel, "About to swap the memory")
+        ' 'swap the vtable entries
+        ' MemLongPtr(GetIdOfNamesSlot) = AddressOf asIDispVb.GetIDsOfNamesVB
+        ' MemLongPtr(InvokeSlot) = AddressOf asIDispVb.InvokeVB
+        Logger.Log(DebugLevel, "Memory Swapped")
+    End Sub
+
+    Private Property Get funcs() As Dictionary
+        'NOTE cached assuming you cannot modify typeinfo at all at runtime (i.e. you cannot edit a module while vba is running)
+        'TODO Check if this holds True for VBComponents.Add
+        Static result As Dictionary
+        If result Is Nothing Then Set result = TypeInfoHelper.GetFuncDispidFromTypeInfo(ObjPtr(ExtendedTypeInfo))
+        Set funcs = result
+    End Property
+
+    Private Sub IDispatchVB_GetIDsOfNamesVB(ByVal riid As LongPtr, ByVal namesArray As LongPtr, ByVal cNames As Long, ByVal lcid As Long, ByVal dispidArray As LongPtr)
+        Logger.Log TraceLevel, "IDispatchVB_GetIDsOfNamesVB"
+        Dim i As Long
+        For i = 0 To cNames - 1
+            Dim name As String = GetStrFromPtrW(MemLongPtr(namesArray + PTR_SIZE * i))
+            Logger.Log DebugLevel, printf("Checking for {}", name)
+            If funcs.Exists(name) Then
+                MemLong(dispidArray + PTR_SIZE * i) = CLng(funcs(name))
+            Else
+                MemLong(dispidArray + PTR_SIZE * i) = -1 'unrecognised
+                Err.ReturnHResult = DISPGetIDsOfNamesErrors.DISP_E_UNKNOWNNAME
+            End If
+        Next i
+    End Sub
+
+    Private Sub IDispatchVB_InvokeVB(ByVal dispIDMember As Long, ByVal riid As LongPtr, ByVal lcid As Long, ByVal wFlags As Integer, ByVal pDispParams As LongPtr, ByVal pVarResult As LongPtr, ByVal pExcepInfo As LongPtr, ByVal puArgErr As LongPtr)
+        Logger.Log DebugLevel, printf("IDispatchVB_InvokeVB dispid={}", dispIDMember)
+        Accessor.Invoke(dispIDMember, _
+            riid, lcid, wFlags, _
+            pDispParams, _
+            pVarResult, pExcepInfo, puArgErr)
+        Err.ReturnHResult = Err.LastHResult 'maybe not needed...        
+    End Sub
+
+    Private Property Get IModuleInfo_ExtendedITypeInfo() As IUnknown
+        Return ExtendedTypeInfo
+    End Property
+
+    Private Property Get IModuleInfo_ModuleFuncInfoMap() As Dictionary
+        Return funcs 'TODO clone, this is mutable
+    End Property
+
+    Private Property Get IModuleInfo_PublicOnlyModuleAccessor() As Object
+        Return Accessor
+    End Property
+
+    Private Property Get IModuleInfo_ExtendedModuleAccessor() As Object
+        Dim dipatchInterface As IDispatchVB = Me 'need to cast me to the correct interface as only IDispatchVB is overloaded
+        Return dipatchInterface
+    End Property
+
+    'Returns a copy of a null-terminated Unicode string (LPWSTR/LPCWSTR) from the given pointer
+    Private Function GetStrFromPtrW(ByVal Ptr As LongPtr) As String
+        SysReAllocString VarPtr(GetStrFromPtrW), Ptr
+    End Function
+
+End Class
+
+
+Module TestIt
+    
+    [ DllExport ]
+    Public Function SimplerAccessor(ByVal proj As VBProject, ByVal moduleName As String) As Object
+        Logger.Log(TraceLevel, "Called get simpler accessor")
+        Return GetFancyAccessor(proj, moduleName)
+    End Function
+    
+    
+    Public Function GetFancyAccessor(ByVal vbProj As VBProject, ByVal moduleName As String, Optional ByVal projectName As Variant) As Object
+        Logger.Log(TraceLevel, "Called get fancy accessor")
+        
+        Dim project As String
+        project = IIf(IsMissing(projectName), vbProj.Name, projectName)
+        
+        Dim moduleTypeInfo As ITypeInfo
+        Dim accessor As Object
+        Dim extendedTypeLib As ITypeLib
+        Set accessor = StdModuleAccessor(moduleName, vbProj, project, moduleTypeInfo, extendedTypeLib)
+        Logger.Log(DebugLevel, printf("Got accessor @{} base_ti@{} tl@{}", ObjPtr(accessor), ObjPtr(moduleTypeInfo), ObjPtr(extendedTypeLib)))
+        
+        'not sure why but not the same as moduleTypeInfo.ITypeInfo - different objects
+        Dim extendedTypeInfo As IUnknown
+        Set extendedTypeInfo = getITypeInfo(moduleName, ObjPtr(extendedTypeLib))
+        Logger.Log(TraceLevel, printf("Got the TI @{}", ObjPtr(extendedTypeInfo)))
+        
+        'calling ITypeInfo::GetIDsOfNames, DispGetIDsOfNames etc. does not work
+        Set GetFancyAccessor = tryMakeFancyAccessor(accessor, extendedTypeInfo).ExtendedModuleAccessor
+
+    End Function
+    
+    'The IModuleInfo interface gives simplified access to the accessor IDispatch interface
+    'IUnknown to keep correct type info interface (the extended one)
+    Private Function tryMakeFancyAccessor(ByVal baseAccessor As IDispatch, ByVal moduleTypeInfo As IUnknown) As IModuleInfo
+        Return New SwapClassEX(baseAccessor, moduleTypeInfo)
+    End Function
+
+    Private Function getITypeInfo(ByVal moduleName As String, ByVal pITypeLib As LongPtr) As IUnknown
+        'HRESULT FindName(
+        '  [in, out] LPOLESTR  szNameBuf,
+        '  [in]      ULONG     lHashVal,
+        '  [out]     ITypeInfo **ppTInfo,
+        '  [out]     MEMBERID  *rgMemId,
+        '  [in, out] USHORT * pcFound
+        ');
+        Dim hresult As hResultCode
+        Dim pModuleITypeInfoArray(1 To 1) As LongPtr
+        Dim memberIDArray(1 To 1) As Long
+        '@Ignore IntegerDataType
+        Dim pcFound As Integer 'number of matches
+        pcFound = 1
+        'call ITypeLib::FindName to get the module specific type info
+        hresult = CallFunction( _
+            pITypeLib, ITypeLibVTableOffset(ITypeLibVTable.FindName), _
+            CR_HRESULT, CC_STDCALL, _
+            StrPtr(moduleName), _
+            0&, _
+            VarPtr(pModuleITypeInfoArray(1)), _
+            VarPtr(memberIDArray(1)), _
+            VarPtr(pcFound))
+                
+        If hresult <> S_OK Then Err.Raise hresult
+        Set getITypeInfo = ObjectFromObjPtr(pModuleITypeInfoArray(1))
+    End Function
+
+
+    ' Private Function getITypeInfo(ByVal moduleName As String, ByVal TypeLib As ITypeLib) As IUnknown
+    '     Logger.Log(DebugLevel, printf("getITypeInfo for {} tl@{}", moduleName, ObjPtr(TypeLib)))
+        
+    '     Dim hresult As hResultCode
+    '     Dim pModuleITypeInfoArray(1 To 1) As LongPtr
+    '     Dim memberIDArray(1 To 1) As Long
+    '     '@Ignore IntegerDataType
+    '     Dim pcFound As Integer 'number of matches
+    '     pcFound = 1
+    '     'call ITypeLib::FindName to get the module specific type info
+    '     TypeLib.FindName StrPtr(moduleName), 0, pModuleITypeInfoArray(1), memberIDArray(1), pcFound
+    '     Logger.Log(DebugLevel, printf("found {}", pcFound))
+    '     If pcFound <> 1 Then Err.Raise 5, "Module Not found!"
+    '     Return ObjectFromObjPtr(pModuleITypeInfoArray(1))
+    ' End Function
+    
+    Public Function ObjectFromObjPtr(ByVal Address As LongPtr) As IUnknown
+        '@Ignore VariableNotAssigned: Assigned ByRef
+        Dim result As IUnknown
+        '@Ignore ValueRequired: False positive
+        MemLongPtr(VarPtr(result)) = Address
+        Set ObjectFromObjPtr = result
+        '@Ignore ValueRequired: False positive
+        MemLongPtr(VarPtr(result)) = 0
+    End Function
+   
+End Module

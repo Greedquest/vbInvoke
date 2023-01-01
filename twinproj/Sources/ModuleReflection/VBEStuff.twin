@@ -51,7 +51,9 @@ Private Class VBETypeLibIterator
     End Property
 
     Public Sub ResetIteration()
+        Logger.Log TraceLevel, "Resetting iteration of typelib iterator"
         Do While this.currentTL.Prev <> 0
+            Logger.Log DebugLevel, printf("this.currentTL.Prev={}", this.currentTL.Prev)
             currentTL = this.currentTL.Prev
         Loop
     End Sub
@@ -80,12 +82,12 @@ Private Class VBETypeLibIterator
         Resume cleanExit
     End Function
 
-    '@Description("Returns the raw ITypeLib interface; this is because TLI.TypeLibInfo is a slightly more restricted view than the pointer here and hides private members")
-    Public Function tryGetCurrentRawITypeLibPtr(ByRef outITypeLib As LongPtr) As Boolean
-        If this.pCurrentTL <= 0 Then Exit Function
-        outITypeLib = this.pCurrentTL
-        tryGetCurrentRawITypeLibPtr = True
-    End Function
+    ' '@Description("Returns the raw ITypeLib interface; this is because TLI.TypeLibInfo is a slightly more restricted view than the pointer here and hides private members")
+    ' Public Function tryGetCurrentRawITypeLibPtr(ByRef outITypeLib As LongPtr) As Boolean
+    '     If this.pCurrentTL <= 0 Then Exit Function
+    '     outITypeLib = this.pCurrentTL
+    '     tryGetCurrentRawITypeLibPtr = True
+    ' End Function
 End Class
 
 Module VBETypeLib
@@ -123,15 +125,18 @@ Module VBETypeLib
 
 
     Public Function StdModuleAccessor(ByVal moduleName As String, ByVal vbProj As VBProject, ByVal projectName As String, Optional ByRef outModuleTypeInfo As ITypeInfo, Optional ByRef outITypeLib As LongPtr) As Object
+        Logger.Log TraceLevel, "Get ref instance ptr"
         Dim referencesInstancePtr As LongPtr
         referencesInstancePtr = ObjPtr(vbProj.References)
-        Debug.Assert referencesInstancePtr <> 0
+        Assert referencesInstancePtr <> 0, "referencesInstancePtr = 0"
         
+        Logger.Log TraceLevel, "Get ref obj"
         'The references object instance looks like this, and has a raw pointer contained within it to the typelibs it uses
         Dim refData As VBEReferencesObj
         CopyMemory refData, ByVal referencesInstancePtr, LenB(refData)
-        Debug.Assert refData.vTable1 = MemLongPtr(referencesInstancePtr)
+        Assert refData.vTable1 = MemLongPtr(referencesInstancePtr), "refData.vTable1 <> MemLongPtr(referencesInstancePtr)"
         
+        Logger.Log TraceLevel, "Get typelib instance table"
         Dim typeLibInstanceTable As VBETypeLibObj
         CopyMemory typeLibInstanceTable, ByVal refData.typeLib, LenB(typeLibInstanceTable)
 
@@ -144,6 +149,7 @@ Module VBETypeLib
         Dim projectTypeLib As TypeLibInfo
         Dim found As Boolean
 
+        Logger.Log TraceLevel, "Try iterate over typelib"
         Do While typeLibPtrs.TryGetNext(projectTypeLib)
             Debug.Assert typeLibPtrs.tryGetCurrentRawITypeLibPtr(outITypeLib)
             LogManager.Log InfoLevel, "Discovered: " & projectTypeLib.name

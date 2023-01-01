@@ -12,7 +12,7 @@ Attribute VB_Exposed = True
 Option Explicit
 
 '@Description("The Extended ITypeInfo interface for the module this accessor refers to")
-Public Property Get ExtendedITypeInfo() As ITypeInfo
+Public Property Get ExtendedITypeInfo() As IUnknown
 Attribute ExtendedITypeInfo.VB_Description = "The Extended ITypeInfo interface for the module this accessor refers to"
 End Property
 

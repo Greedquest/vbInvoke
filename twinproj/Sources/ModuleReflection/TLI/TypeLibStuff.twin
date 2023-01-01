@@ -210,7 +210,7 @@ Module TypeInfoHelper
                 ElseIf result(funcName) <> .memid Then
                     Err.Raise 5, Description:=funcName & "is already associated with another dispid"
                 Else
-                    Debug.Assert .INVOKEKIND <> INVOKE_METHOD 'this method & dispid should not appear twice
+                Assert .INVOKEKIND <> INVOKE_METHOD 'this method & dispid should not appear twice
                 End If
                 
             End With
