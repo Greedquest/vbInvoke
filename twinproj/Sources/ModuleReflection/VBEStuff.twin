@@ -81,13 +81,14 @@ Private Class VBETypeLibIterator
         Set outTypeLib = Nothing
         Resume cleanExit
     End Function
+    
 
-    ' '@Description("Returns the raw ITypeLib interface; this is because TLI.TypeLibInfo is a slightly more restricted view than the pointer here and hides private members")
-    ' Public Function tryGetCurrentRawITypeLibPtr(ByRef outITypeLib As LongPtr) As Boolean
-    '     If this.pCurrentTL <= 0 Then Exit Function
-    '     outITypeLib = this.pCurrentTL
-    '     tryGetCurrentRawITypeLibPtr = True
-    ' End Function
+    '@Description("Returns the raw ITypeLib interface; this is because TLI.TypeLibInfo is a slightly more restricted view than the pointer here and hides private members")
+    Public Function tryGetCurrentRawITypeLibPtr(ByRef outITypeLib As LongPtr) As Boolean
+        If this.pCurrentTL <= 0 Then Exit Function
+        outITypeLib = this.pCurrentTL
+        tryGetCurrentRawITypeLibPtr = True
+    End Function
 End Class
 
 Module VBETypeLib
