@@ -22,7 +22,7 @@ Public Property Get name() As String
 End Property
 
 Public Property Get ITypeLib() As ITypeLib
-    Debug.Assert Not this.ITypeLib Is Nothing
+    Assert Not this.ITypeLib Is Nothing
     Set ITypeLib = this.ITypeLib
 End Property
 

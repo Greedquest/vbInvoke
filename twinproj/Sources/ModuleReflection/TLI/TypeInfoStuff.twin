@@ -1,7 +1,7 @@
 Private Class TypeInfoCollection
     Public ReadOnly typeLib As ITypeLib
     Private ReadOnly typeInfoCount As long
-    Private typeInfos As KeyedCollection = New KeyedCollection
+    Private typeInfos As Dictionary = New Dictionary
     
     
     Public Sub New(ByVal wrappedITypeLib As ITypeLib)
@@ -12,12 +12,13 @@ Private Class TypeInfoCollection
 
     Private Function tryGenerateNext(ByRef outITypeInfo As ITypeInfo) As Boolean
         Static i As Long 'zero indexed
-        Logger.Log DebugLevel, printf("tryGenerate ti {}", i)
+        Logger.Log DebugLevel, printf("tryGenerate ti i={}", i)
         If i >= typeInfoCount Then Return False
         
         'if there are errors here we want to know about them
         Dim rawITypeInfo As ITypeInfo
         Set rawITypeInfo = TypeLibHelper.getITypeInfoByIndex(typeLib, i)
+        Logger.Log TraceLevel, "Generated TypeInfo"
         i = i + 1
 
         Set outITypeInfo = rawITypeInfo
@@ -37,7 +38,6 @@ Private Class TypeInfoCollection
             Logger.Log DebugLevel, printf("found ti for {} @{}", tiName, ObjPtr(wrappedTI))
             'Logger.Log InfoLevel, printf("Got a thing '{}'", TypeName(wrappedTI))
             'Logger.Log InfoLevel, "Dict is called " & TypeName(typeInfos)
-            Logger.Log TraceLevel, "Just here"
             ' typeInfos.Item("foo") = "bar"
             ' Logger.Log TraceLevel, "Added foobar"
             Dim anotherInterface As Variant
