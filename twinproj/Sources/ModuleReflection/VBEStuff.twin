@@ -112,19 +112,8 @@ Module VBETypeLib
         '@Ignore KeywordsUsedAsMember: Looks nice, sorry ThunderFrame
         Next As LongPtr
     End Type
-
-    [ DllExport ]
-    Public Sub boxIt(ByVal s As String)
-        MsgBox s
-    End Sub
-
-    [ DllExport ]
-    Public Function somethingSimple(ByVal x As String, ByVal proj As VBProject) As Object
-        Logger.Log InfoLevel, "Invoking tB dll function..."
-        Return StdModuleAccessor(x, proj, proj.Name)
-    End Function
-
-
+      
+    
     Public Function StdModuleAccessor(ByVal moduleName As String, ByVal vbProj As VBProject, ByVal projectName As String, Optional ByRef outModuleTypeInfo As ITypeInfo, Optional ByRef outITypeLib As LongPtr) As Object
         Logger.Log TraceLevel, "Get ref instance ptr"
         Dim referencesInstancePtr As LongPtr

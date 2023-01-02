@@ -38,6 +38,7 @@ Module Logging
     End Sub
 End Module
 
+''For reference here's what's in the VBA ExampleModule 
 ' Module ExampleModule
 ' 	Option Explicit
 
@@ -59,56 +60,19 @@ End Module
 ' End Module
 
 
-Module Experiments
+Module DllFunctions
+	[ DllExport ]
+    Public Function GetPublicAccessor(ByVal moduleName As String, ByVal proj As VBProject) As Object
+        Logger.Log InfoLevel, "Invoking GetPublicAccessor"
+        Return StdModuleAccessor(moduleName, proj, proj.Name)
+    End Function
+    
+    ' [ DllExport ]
+    ' Public Function GetPubPrivAccessor(ByVal moduleName As String, ByVal proj As VBProject) As Object
+    '     Logger.Log InfoLevel, "Invoking GetPubPrivAccessor"
+    '     Dim outPublicTI As ITypeInfo
+    '     Dim outExtendedTL As ITypeLib
+    '     Dim baseAccessor As Object = StdModuleAccessor(moduleName, proj, proj.Name, outPublicTI, outExtendedTL)
+    ' End Function
 
-	Private test_val As Double
-
-	Public Sub testCallingPrivateMethod(ByVal wb As Excel.Workbook)
-		Dim exampleMod As Object
-		Set exampleMod = GetFancyAccessor(wb.VBProject, "ExampleModule")
-		Assert exampleMod.Foo(2) = "HelloWorld!!"
-	End Sub
-
-	Public Sub testCallingErrorMethod(ByVal wb As Excel.Workbook)
-		Dim thisMod As Object
-		Set thisMod = GetFancyAccessor(wb.VBProject, "Experiments")
-		On Error Resume Next 'untrappable errors unfortunately, but also does not crash which is very good
-		thisMod.raisesError
-		Assert Err.Number = 5
-	End Sub
-
-	Public Sub testTerminateDoesNotCrash(ByVal wb As Excel.Workbook)
-		GetFancyAccessor(wb.VBProject, "Experiments").terminate
-		Assert False 'unreachable
-	End Sub
-
-	Public Sub testModuleReflection(ByVal wb As Excel.Workbook)
-		Dim info As IModuleInfo
-		Set info = GetFancyAccessor(wb.VBProject, "ExampleModule")
-		Assert Join(info.ModuleFuncInfoMap.Keys()) = Join(Array("Foo", "Baz", "val")) 'val appears twice in module but only once here since it is a Let/Set
-	End Sub
-
-	Public Sub testProps(ByVal wb As Excel.Workbook)
-		test_val = 9
-		With GetFancyAccessor(wb.VBProject, "Experiments")
-			.val = 1.7
-			Assert .val = 1.7
-		End With
-	End Sub
-
-	Private Sub raisesError()
-		Err.Raise 5
-	End Sub
-
-	Private Sub terminate()
-		End
-	End Sub
-
-	Public Property Get val() As Double
-		val = test_val
-	End Property
-
-	Public Property Let val(ByVal rhs As Double)
-		test_val = rhs
-	End Property
 End Module
