@@ -15,18 +15,6 @@ Public Declare PtrSafe Function IIDFromString Lib "ole32.dll" (ByVal lpsz As Lon
 '     MemLongPtr(VarPtr(result)) = 0
 ' End Function
 
-'deref without calling QI
-Public Function TypeLibFromObjPtr(ByVal Address As LongPtr) As ITypeLib
-    '@Ignore VariableNotAssigned: Assigned ByRef
-    Dim result As ITypeLib
-    '@Ignore ValueRequired: False positive
-    MemLongPtr(VarPtr(result)) = Address
-    Set TypeLibFromObjPtr = result
-    '@Ignore ValueRequired: False positive
-    MemLongPtr(VarPtr(result)) = 0
-End Function
-
-
 
 '@Ignore ParameterCanBeByVal: Passing ByVal would trigger an additional QueryInterface
 Public Function QueryInterface(ByRef ClassInstance As IUnknown, ByVal InterfaceIID As String) As LongPtr

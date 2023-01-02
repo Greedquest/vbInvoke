@@ -64,22 +64,16 @@ Private Class VBETypeLibIterator
         currentTL = this.currentTL.Next 'move the iterator along
     End Function
 
-    '@Description("Gets type library com objects from list")
+    [ Description ("Gets type library com objects from list") ]
     Public Function TryGetNext(ByRef outTypeLib As TypeLibInfo) As Boolean
-    Attribute TryGetNext.VB_Description = "Gets type library com objects from list"
         On Error GoTo cleanFail
-        Dim tlPtr As LongPtr
-        tlPtr = NextTypeLib
-        Set outTypeLib = TLI.TypeLibInfoFromITypeLib(TypeLibFromObjPtr(tlPtr))
-        TryGetNext = True
-        
-    cleanExit:
-        Exit Function
-        
+        Dim tlPtr As LongPtr = NextTypeLib
+        Set outTypeLib = New TypeLibInfo(tlPtr) 'no worries about query interface for ITypeLib
+        Return True
+
     cleanFail:
-        TryGetNext = False
         Set outTypeLib = Nothing
-        Resume cleanExit
+        Return False
     End Function
     
 
@@ -114,7 +108,7 @@ Module VBETypeLib
     End Type
       
     
-    Public Function StdModuleAccessor(ByVal moduleName As String, ByVal vbProj As VBProject, ByVal projectName As String, Optional ByRef outModuleTypeInfo As ITypeInfo, Optional ByRef outITypeLib As LongPtr) As Object
+    Public Function StdModuleAccessor(ByVal moduleName As String, ByVal vbProj As VBProject, ByVal projectName As String, Optional ByRef outModuleTypeInfo As ITypeInfo, Optional ByRef outTypeLib As TypeLibInfo) As Object
         Logger.Log TraceLevel, "Get ref instance ptr"
         Dim referencesInstancePtr As LongPtr
         referencesInstancePtr = ObjPtr(vbProj.References)
@@ -136,18 +130,19 @@ Module VBETypeLib
         
         'Now we could use proj.module.sub to find something in particular
         'For now though, we just want a reference to the typeInfo for the ExampleModule
-        Dim projectTypeLib As TypeLibInfo
         Dim found As Boolean
 
         Logger.Log TraceLevel, "Try iterate over typelib"
-        Do While typeLibPtrs.TryGetNext(projectTypeLib)
-            Assert typeLibPtrs.tryGetCurrentRawITypeLibPtr(outITypeLib)
-            Dim tlName As String = projectTypeLib.name
-            LogManager.Log InfoLevel, printf("Discovered: {}@{}", tlName, outITypeLib)
+        Do While typeLibPtrs.TryGetNext(outTypeLib)
+            Dim pExtendedTypeLib As LongPtr
+            Assert typeLibPtrs.tryGetCurrentRawITypeLibPtr(pExtendedTypeLib)
+            Assert pExtendedTypeLib = ObjPtr(outTypeLib.ITypeLib), "TypeLib pointer has changed"
+            Dim tlName As String = outTypeLib.name
+            LogManager.Log InfoLevel, printf("Discovered: {}@{}", tlName, pExtendedTypeLib)
             If tlName = projectName Then
                 'we have found the project typelib, check for the correct module within it
                 Dim moduleTI As ITypeInfo
-                If projectTypeLib.tryGetTypeInfoByName(moduleName, outTI:=moduleTI) Then
+                If outTypeLib.tryGetTypeInfoByName(moduleName, outTI:=moduleTI) Then
                     Logger.Log DebugLevel, "Got a typeinfo @" & ObjPtr(moduleTI)
                     found = True
                     Exit Do

@@ -180,6 +180,7 @@ Class SwapClassEX
         pGetIDsOfNamesVB = pAsDispVT + IDispatchVBVTableOffset(IDispatchVBVTable.GetIDsOfNamesVB)
         pGetIDsOfNamesOriginal = pAsDispVT + IDispatchVBVTableOffset(IDispatchVBVTable.IDispatch.GetIDsOfNames)
         
+        
         'swap the vtable entries
         Logger.Log DebugLevel, "About to swap the memory"
         Logger.Log DebugLevel, printf("invoke {} -> {}, getIDs {} -> {}", pInvokeOriginal, pInvokeVB, pGetIDsOfNamesOriginal, pGetIDsOfNamesVB)
@@ -263,13 +264,7 @@ End Class
 
 
 Module TestIt
-    
-    '[ DllExport ]
-    Public Function SimplerAccessor(ByVal proj As VBProject, ByVal moduleName As String) As Object
-        Logger.Log(TraceLevel, "Called get simpler accessor")
-        Return GetFancyAccessor(proj, moduleName)
-    End Function
-    
+      
     
     Public Function GetFancyAccessor(ByVal vbProj As VBProject, ByVal moduleName As String, Optional ByVal projectName As Variant) As Object
         Logger.Log(TraceLevel, "Called get fancy accessor")

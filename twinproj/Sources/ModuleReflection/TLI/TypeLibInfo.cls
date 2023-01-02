@@ -17,6 +17,10 @@ End Type
 
 Private this As TTypeLibInfo
 
+Public Sub New(ByVal pTypeLib As LongPtr)
+    set me.ITypeLib = ObjectFromObjPtr(pTypeLib)
+End Sub
+
 Public Property Get name() As String
     name = TypeLibHelper.getProjName(ITypeLib)
 End Property
