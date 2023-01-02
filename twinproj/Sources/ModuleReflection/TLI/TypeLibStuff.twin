@@ -73,9 +73,9 @@ Interface ITypeLib Extends IUnknown
     [ PreserveSig ]
     Function GetTypeInfoCount() As Long
     Sub GetTypeInfo(ByVal index As Long, ByRef outTI As ITypeInfo)
-    Sub GetTypeInfoType()
-    Sub GetTypeInfoOfGuid()
-    Sub GetLibAttr()
+    Sub DummyGetTypeInfoType()
+    Sub DummyGetTypeInfoOfGuid()
+    Sub DummyGetLibAttr()
     Sub GetTypeComp()
     
 '        virtual /* [local] */ HRESULT STDMETHODCALLTYPE GetDocumentation(
@@ -88,9 +88,17 @@ Interface ITypeLib Extends IUnknown
 '            /* [annotation][out] */
 '            _Outptr_opt_  BSTR *pBstrHelpFile) = 0;
     Sub GetDocumentation(ByVal memid As DISPID, ByRef outName As String, Optional ByVal pBstrDocString As LongPtr = NULL_PTR, Optional ByVal pdwHelpContext As LongPtr = NULL_PTR, Optional ByVal pBstrHelpFile As LongPtr = NULL_PTR)
-    Sub IsName()
-    Sub FindName()
-    Sub ReleaseTLibAttr()
+    Sub DummyIsName()
+
+    'HRESULT FindName(
+    '  [in, out] LPOLESTR  szNameBuf,
+    '  [in]      ULONG     lHashVal,
+    '  [out]     ITypeInfo **ppTInfo,
+    '  [out]     MEMBERID  *rgMemId,
+    '  [in, out] USHORT * pcFound
+    ');
+    Sub FindName(ByVal szNameBuf As LongPtr, ByVal lHashVal As LongLong, ByRef outTypeInfoArrayFirst As ITypeInfo, ByRef outMemIDArrayFirst As Long, ByRef pcFound As Integer)
+    Sub DummyReleaseTLibAttr()
 End Interface
 
 

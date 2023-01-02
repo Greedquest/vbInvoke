@@ -68,6 +68,22 @@ Module DllFunctions
         Dim outExtendedTL As TypeLibInfo
         Set GetPublicAccessor = StdModuleAccessor(moduleName, proj, proj.Name, outPublicTI, outExtendedTL)
         Logger.Log InfoLevel, printf("Discarding ITypeInfo @{} + ITypeLib* @{}", ObjPtr(outPublicTI), ObjPtr(outExtendedTL.ITypeLib))
+        
+        
+        'HRESULT FindName(
+        '  [in, out] LPOLESTR  szNameBuf,
+        '  [in]      ULONG     lHashVal,
+        '  [out]     ITypeInfo **ppTInfo,
+        '  [out]     MEMBERID  *rgMemId,
+        '  [in, out] USHORT * pcFound
+        ');
+
+        Dim outPrivateTI(1 To 1) As ITypeInfo
+        Dim memberIDArray(1 To 1) As DISPID
+        Dim pcFound As Integer = 1 'number of matches
+        outExtendedTL.ITypeLib.FindName StrPtr(moduleName), 0, outPrivateTI(1), memberIDArray(1), pcFound
+        Logger.Log InfoLevel, printf("{} PrivateITypeInfo @{}", pcFound, ObjPtr(outPrivateTI(1)))       
+        
     End Function
     
     ' [ DllExport ]

@@ -313,7 +313,7 @@ Module TestIt
             pITypeLib, ITypeLibVTableOffset(ITypeLibVTable.FindName), _
             CR_HRESULT, CC_STDCALL, _
             StrPtr(moduleName), _
-            0&, _
+            0^, _
             VarPtr(pModuleITypeInfoArray(1)), _
             VarPtr(memberIDArray(1)), _
             VarPtr(pcFound))
