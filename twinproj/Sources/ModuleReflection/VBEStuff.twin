@@ -142,8 +142,9 @@ Module VBETypeLib
         Logger.Log TraceLevel, "Try iterate over typelib"
         Do While typeLibPtrs.TryGetNext(projectTypeLib)
             Assert typeLibPtrs.tryGetCurrentRawITypeLibPtr(outITypeLib)
-            LogManager.Log InfoLevel, "Discovered: " & projectTypeLib.name
-            If projectTypeLib.name = projectName Then
+            Dim tlName As String = projectTypeLib.name
+            LogManager.Log InfoLevel, printf("Discovered: {}@{}", tlName, outITypeLib)
+            If tlName = projectName Then
                 'we have found the project typelib, check for the correct module within it
                 Dim moduleTI As ITypeInfo
                 If TryGetTypeInfo(projectTypeLib, moduleName, outTI:=moduleTI) Then

@@ -44,7 +44,7 @@ Private Class TypeInfoCollection
             Set anotherInterface = wrappedTI
             Logger.Log TraceLevel, "convert to variant"
             typeInfos.Add tiName, anotherInterface
-            Logger.Log TraceLevel, "Added"
+            Logger.Log DebugLevel, printf("Added {} @ {}",tiname,objptr(typeInfos(tiName)))
         Loop
         Logger.Log DebugLevel, "Found it!"
         Logger.Log DebugLevel, "Dict: " & Join(typeInfos.Keys, ", ")
