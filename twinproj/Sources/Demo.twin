@@ -64,7 +64,10 @@ Module DllFunctions
 	[ DllExport ]
     Public Function GetPublicAccessor(ByVal moduleName As String, ByVal proj As VBProject) As Object
         Logger.Log InfoLevel, "Invoking GetPublicAccessor"
-        Return StdModuleAccessor(moduleName, proj, proj.Name)
+        Dim outPublicTI As ITypeInfo
+        Dim outpExtendedTL As LongPtr
+        Set GetPublicAccessor = StdModuleAccessor(moduleName, proj, proj.Name, outPublicTI, outpExtendedTL)
+        Logger.Log InfoLevel, printf("Discarding ITypeInfo @{} + ITypeLib* @{}", ObjPtr(outPublicTI), outpExtendedTL)
     End Function
     
     ' [ DllExport ]
