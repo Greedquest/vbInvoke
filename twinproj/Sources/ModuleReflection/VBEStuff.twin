@@ -147,7 +147,7 @@ Module VBETypeLib
             If tlName = projectName Then
                 'we have found the project typelib, check for the correct module within it
                 Dim moduleTI As ITypeInfo
-                If TryGetTypeInfo(projectTypeLib, moduleName, outTI:=moduleTI) Then
+                If projectTypeLib.tryGetTypeInfoByName(moduleName, outTI:=moduleTI) Then
                     Logger.Log DebugLevel, "Got a typeinfo @" & ObjPtr(moduleTI)
                     found = True
                     Exit Do
@@ -171,14 +171,6 @@ Module VBETypeLib
         Set outModuleTypeInfo = moduleTI
         Set StdModuleAccessor = vbeComponent.GetStdModAccessor()
 
-    End Function
-
-    Private Function TryGetTypeInfo(ByVal typeLib As TypeLibInfo, ByVal moduleName As String, ByRef outTI As ITypeInfo) As Boolean
-        On Error Resume Next
-        Set outTI = typeLib.getTypeInfoByName(moduleName)
-        TryGetTypeInfo = Err.Number = 0
-        If Err.Number <> 0 Then Logger.Log ErrorLevel, "Couldn't get typeinfo - " & Err.Description
-        On Error GoTo 0
     End Function
 
 End Module

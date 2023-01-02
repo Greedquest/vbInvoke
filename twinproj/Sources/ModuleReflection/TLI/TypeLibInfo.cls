@@ -31,11 +31,12 @@ Public Property Set ITypeLib(ByVal RHS As ITypeLib)
     Set this.typeInfos = New TypeInfoCollection(ITypeLib)
 End Property
 
-Public Function getTypeInfoByName(ByVal name As String) As ITypeInfo
+Public Function tryGetTypeInfoByName(ByVal name As String, ByRef outTI As ITypeInfo) As Boolean
     On Error GoTo logErr
-    Return this.typeInfos.Find(name)
+    this.typeInfos.Find name, outTI
+    Return True
     
     logErr:
     Logger.Log ErrorLevel, printf("Find raised error {}: {}", Err.Number, Err.Description)
-    Err.Raise Err.Number
+    Return False
 End Function

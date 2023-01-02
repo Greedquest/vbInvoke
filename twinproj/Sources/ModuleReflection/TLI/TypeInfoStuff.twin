@@ -1,15 +1,14 @@
+[ Description ("Caching list of ITypeInfos in a given TypeLib") ]
 Private Class TypeInfoCollection
     Public ReadOnly typeLib As ITypeLib
     Private ReadOnly typeInfoCount As long
     Private typeInfos As Dictionary = New Dictionary
-    
     
     Public Sub New(ByVal wrappedITypeLib As ITypeLib)
         Set typeLib = wrappedITypeLib
         typeInfoCount = getTypeInfoCount(typeLib)
     End Sub
     
-
     Private Function tryGenerateNext(ByRef outITypeInfo As ITypeInfo) As Boolean
         Static i As Long 'zero indexed
         Logger.Log DebugLevel, printf("tryGenerate ti i={}", i)
@@ -25,31 +24,33 @@ Private Class TypeInfoCollection
         Return True
     End Function
 
-
-
-    Public Function Find(ByVal name As String) As ITypeInfo
+    Public Sub Find(ByVal name As String, ByRef outTI As ITypeInfo)
         Logger.Log DebugLevel, "Finding: " & name
         Do While Not typeInfos.Exists(name)
             Logger.Log TraceLevel, "Loop"
             Dim wrappedTI As ITypeInfo
+            'Exit early if not found because no more left to try
             If Not tryGenerateNext(wrappedTI) Then Err.Raise 5, Description:="That name can't be found"
             Dim tiName As String = TypeInfoHelper.getModName(wrappedTI)
-            Logger.Log DebugLevel, "Dict: " & Join(typeInfos.Keys, ", ")
+            Logger.Log DebugLevel, "TypeInfos: " & Join(typeInfos.Keys, ", ")
             Logger.Log DebugLevel, printf("found ti for {} @{}", tiName, ObjPtr(wrappedTI))
-            'Logger.Log InfoLevel, printf("Got a thing '{}'", TypeName(wrappedTI))
-            'Logger.Log InfoLevel, "Dict is called " & TypeName(typeInfos)
-            ' typeInfos.Item("foo") = "bar"
-            ' Logger.Log TraceLevel, "Added foobar"
+
+            'Dict requires variants, this does not change the interface pointer
             Dim anotherInterface As Variant
             Set anotherInterface = wrappedTI
             Logger.Log TraceLevel, "convert to variant"
             typeInfos.Add tiName, anotherInterface
-            Logger.Log DebugLevel, printf("Added {} @ {}",tiname,objptr(typeInfos(tiName)))
+            Logger.Log DebugLevel, printf("Added {} @ {}", tiName, ObjPtr(typeInfos(tiName)))
         Loop
-        Logger.Log DebugLevel, "Found it!"
-        Logger.Log DebugLevel, "Dict: " & Join(typeInfos.Keys, ", ")
-        Dim result As Variant = typeInfos.Item(name)
-        Return result
-    End Function
+        Logger.Log DebugLevel, "TypeInfos: " & Join(typeInfos.Keys, ", ")
+        Logger.Log InfoLevel, "Found it!"
+        
+        'TODO there is no way to cache the TI pointers AND return them without QI unless pointer tricks are used
+        'So see if this pre-QI TypeInfo is even the private one ExtendedTL would return
+        'Then decide between a second stage ExtendedTypeLib::GetTypeInfo
+        'Or using pointer tricks here
+        'Bearing in mind memory leaks vs overhead regenerating the ITypeInfo
+        Set outTI = typeInfos(tiName)
+    End Sub
 
 End Class
