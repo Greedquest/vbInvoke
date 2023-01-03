@@ -84,7 +84,6 @@ Module DllFunctions
         Dim outExtendedTL As TypeLibInfo
         Dim baseAccessor As Object = StdModuleAccessor(moduleName, proj, proj.Name, outPublicTI, outExtendedTL)
         Logger.Log InfoLevel, printf("Discarding ITypeInfo @{} + ITypeLib* @{}", ObjPtr(outPublicTI), ObjPtr(outExtendedTL.ITypeLib))
-        Set GetFullAccessor = baseAccessor
         
         'HRESULT FindName(
         '  [in, out] LPOLESTR  szNameBuf,
@@ -101,7 +100,7 @@ Module DllFunctions
         
         Dim swapClassInfo As IModuleInfo = New SwapClassEX(baseAccessor, outPrivateTI)
         Logger.Log TraceLevel, "Created swap class successfully"
-        Return swapClassInfo.ExtendedModuleAccessor
+        Return swapClassInfo.ExtendedModuleAccessor 'cannot return the swapclass itself as that is not overloaded
     End Function
 
 End Module
