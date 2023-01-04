@@ -3,10 +3,15 @@
 
 *.doccls
 
-~$*.xlsm
+~$*.xl?m
 
 testing/callme.xlsm
 
 Build/
 
 VBRUN/
+VBA/*.xl?m
+
+
+
+VBA/VBAHack Demo.xlsm
