@@ -60,7 +60,12 @@ Interface IDispatch Extends IUnknown
     ' }
     Sub GetTypeInfoCount()
     Sub GetTypeInfo()
-    Sub GetIDsOfNames()
+    Sub GetIDsOfNames( _
+        ByVal riid As LongPtr, _
+        ByVal namesArray As LongPtr, _
+        ByVal cNames As Long, _
+        ByVal lcid As Long, _
+        ByVal dispidArray As LongPtr)
     Sub Invoke( _
         ByVal dispIDMember As Long, _
         ByVal riid As LongPtr, _
@@ -238,4 +243,71 @@ Module TestIt
         MemLongPtr(VarPtr(result)) = 0
     End Function
    
+End Module
+
+[ COMCreatable (False) ]
+Class SimplestSwap
+	Implements IDispatchVB
+    Private ReadOnly BaseAccessor As IDispatch
+    
+    Private Sub New(ByVal BaseAccessor As IDispatch)
+        Set Me.BaseAccessor = BaseAccessor
+        Dim asSwapInterface As IDispatchVB = Me
+        Dim pOverloadVTable As LongPtr = MemLongPtr(ObjPtr(asSwapInterface))
+        Logger.Log InfoLevel, printf("addr {}->{} slot {}->{}", _
+         AddressOf asSwapInterface.GetIDsOfNamesVB, _
+         AddressOf asSwapInterface.InvokeVB, _
+         pOverloadVTable + PTR_SIZE * 7, _
+         MemLongPtr(pOverloadVTable + PTR_SIZE * 7))
+        MemLongPtr(pOverloadVTable + PTR_SIZE * 5) = MemLongPtr(pOverloadVTable + PTR_SIZE * 7) 'getIDsOfNames
+        MemLongPtr(pOverloadVTable + PTR_SIZE * 6) = MemLongPtr(pOverloadVTable + PTR_SIZE * 8) 'invoke
+    End Sub
+    
+    Public Function GetOverloadedInterface() As Object
+        Dim asSwapInterface As IDispatchVB = Me
+        Return asSwapInterface
+    End Function
+
+    Private Sub IDispatchVB_GetIDsOfNamesVB(ByVal riid As LongPtr, ByVal namesArray As LongPtr, ByVal cNames As Long, ByVal lcid As Long, ByVal dispidArray As LongPtr)
+        Logger.Log TraceLevel, "IDispatchVB_GetIDsOfNamesVB"
+        BaseAccessor.GetIDsOfNames(riid, namesArray, cNames, lcid, dispidArray)
+        Err.ReturnHResult = Err.LastHResult 'maybe not needed...  
+    End Sub
+    
+    Private Sub IDispatchVB_InvokeVB(ByVal dispIDMember As Long, ByVal riid As LongPtr, ByVal lcid As Long, ByVal wFlags As Integer, ByVal pDispParams As LongPtr, ByVal pVarResult As LongPtr, ByVal pExcepInfo As LongPtr, ByVal puArgErr As LongPtr)
+        Logger.Log DebugLevel, printf("IDispatchVB_InvokeVB dispid={}", dispIDMember)
+        BaseAccessor.Invoke(dispIDMember, _
+            riid, lcid, wFlags, _
+            pDispParams, _
+            pVarResult, pExcepInfo, puArgErr)
+        Err.ReturnHResult = Err.LastHResult 'maybe not needed...        
+    End Sub
+End Class
+Public Module minrepro
+    Public Sub testSimplestSwap()
+        Dim baseObject As Object = New Collection
+        baseObject.add "foo"
+        
+        'should call our swapped function!
+        Dim proxyObject As Object = makeProxy(baseObject)
+        proxyObject.add "bar"
+        
+        Dim item As Variant
+        For Each item In baseObject
+            Logger.Log InfoLevel, printf("Got a '{}'", item)
+        Next
+    End Sub
+
+    [ DllExport ]
+    Public Function makeProxy(ByVal baseObj As Object) As Object
+        Logger.Log TraceLevel, printf("making proxy for {}", ObjPtr(baseObj))
+        Dim result As SimplestSwap = New SimplestSwap(baseObj)
+        Return result.GetOverloadedInterface
+    End Function
+    
+    [ DllExport ]
+    Public Sub CallMe()
+    	MsgBox "Hello from tB"
+    End Sub
+
 End Module
