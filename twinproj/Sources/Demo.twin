@@ -69,8 +69,8 @@ End Class
 
 Module DllFunctions
 	[ DllExport ]
-    Public Function GetPublicAccessor(ByVal moduleName As String, ByVal proj As VBProject) As Object
-        Logger.Log InfoLevel, "Invoking GetPublicAccessor"
+    Public Function GetPublicAccessor(ByVal moduleName As Variant, ByVal proj As VBProject) As Object
+        Logger.Log InfoLevel, printf("Invoking GetPublicAccessor on {}.{}", proj.Name, moduleName)
         Dim outPublicTI As ITypeInfo
         Dim outExtendedTL As TypeLibInfo
         Set GetPublicAccessor = StdModuleAccessor(moduleName, proj, proj.Name, outPublicTI, outExtendedTL)
@@ -83,7 +83,7 @@ Module DllFunctions
         Dim outPublicTI As ITypeInfo
         Dim outExtendedTL As TypeLibInfo
         Dim baseAccessor As Object = StdModuleAccessor(moduleName, proj, proj.Name, outPublicTI, outExtendedTL)
-        Logger.Log InfoLevel, printf("Discarding ITypeInfo @{} + ITypeLib* @{}", ObjPtr(outPublicTI), ObjPtr(outExtendedTL.ITypeLib))
+        Logger.Log InfoLevel, printf("Got ITypeInfo @{} + ITypeLib* @{}", ObjPtr(outPublicTI), ObjPtr(outExtendedTL.ITypeLib))
         
         'HRESULT FindName(
         '  [in, out] LPOLESTR  szNameBuf,

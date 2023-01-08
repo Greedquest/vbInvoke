@@ -261,7 +261,7 @@ Class SimplestSwap
         Dim pOverloadVTable As LongPtr = MemLongPtr(ObjPtr(asSwapInterface))
         Dim pRootVTable As LongPtr = MemLongPtr(ObjPtr(rootInterface))
         'addressof classmethod fails as it is per instance temp stub fn
-        Logger.Log DebugLevel, printf("About to perform swap{0} base {1}{0} swap {2}{0} diff {3}*{4}", vbNewLine, pRootVTable, pOverloadVTable, (pOverloadVTable - pRootVTable) / PTR_SIZE, PTR_SIZE)
+        Logger.Log DebugLevel, printf("About to perform swap{0} base {1}{0} swap {2}{0} diff {3}*{4}", " - ", pRootVTable, pOverloadVTable, (pOverloadVTable - pRootVTable) / PTR_SIZE, PTR_SIZE)
         MemLongPtr(pRootVTable + PTR_SIZE * 5) = MemLongPtr(pOverloadVTable + PTR_SIZE * 7) 'getIDsOfNames
         MemLongPtr(pRootVTable + PTR_SIZE * 6) = MemLongPtr(pOverloadVTable + PTR_SIZE * 8) 'invoke
         Logger.Log TraceLevel, "VT swap complete"
