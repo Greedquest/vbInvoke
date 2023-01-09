@@ -106,121 +106,15 @@ Module DllFunctions
 
 End Module
 
-'''ORIGINAL IMPL
-' [ COMCreatable (False) ]
-' Class SwapClassEX
-' 	Implements IDispatchVB 'For the VTable swap
-'     Implements IModuleInfo 'Easy access to additional methods
-        
-'     Private Declare PtrSafe Function SysReAllocString Lib "oleaut32.dll" (ByVal pBSTR As LongPtr, Optional ByVal pszStrPtr As LongPtr) As Long
-
-'     Public accessor As Object
-'     Public ITypeInfo As IUnknown
-    
-'     Sub New(acc As Object, ByRef ti As ITypeInfo)
-'         Set accessor = acc
-'         With New GenericCaster(Of ITypeInfo, IUnknown)
-'             .Cast(ITypeInfo) = ti
-'         End With
-'         Assert ObjPtr(ITypeInfo) = ObjPtr(ti)
-'     End Sub
-
-
-'     Private Sub Class_Initialize()
-'         Dim asDisp As IDispatchVB
-'         Set asDisp = Me
-'         Dim pAsDispVT As LongPtr
-'         pAsDispVT = MemLongPtr(ObjPtr(asDisp))
-'         Dim pInvokeVB As LongPtr, pInvokeOriginal As LongPtr
-'         pInvokeVB = pAsDispVT + IDispatchVBVTableOffset(IDispatchVBVTable.InvokeVB)
-'         pInvokeOriginal = pAsDispVT + IDispatchVBVTableOffset(IDispatchVBVTable.IDispatch.Invoke)
-        
-'         Dim pGetIDsOfNamesVB As LongPtr, pGetIDsOfNamesOriginal As LongPtr
-'         pGetIDsOfNamesVB = pAsDispVT + IDispatchVBVTableOffset(IDispatchVBVTable.GetIDsOfNamesVB)
-'         pGetIDsOfNamesOriginal = pAsDispVT + IDispatchVBVTableOffset(IDispatchVBVTable.IDispatch.GetIDsOfNames)
-        
-'         'swap the vtable entries
-'         MemLongPtr(pGetIDsOfNamesOriginal) = MemLongPtr(pGetIDsOfNamesVB)
-'         MemLongPtr(pInvokeOriginal) = MemLongPtr(pInvokeVB)
-'     End Sub
-
-'     Private Property Get funcs()
-'         'NOTE cached assuming you cannot modify typeinfo at all at runtime (i.e. you cannot edit a module while vba is running)
-'         'TODO Check if this holds True for VBComponents.Add
-'         Static result As Dictionary
-'         If result Is Nothing Then Set result = TypeInfoHelper.GetFuncDispidFromTypeInfo(ITypeInfo)
-'         Set funcs = result
-'     End Property
-
-'     Private Sub IDispatchVB_GetIDsOfNamesVB(ByVal riid As LongLong, ByVal namesArray As LongLong, ByVal cNames As Long, ByVal lcid As Long, ByVal dispidArray As LongLong)
-'         'Debug.Assert cNames = 1
-'         Assert Not ITypeInfo Is Nothing
-'         Assert Not accessor Is Nothing
-'         Logger.Log TraceLevel, "GetIDs"
-'         Dim i As Long
-'         For i = 0 To cNames - 1
-'             Dim name As String
-'             name = GetStrFromPtrW(MemLongPtr(namesArray + PTR_SIZE * i))
-'             If funcs.Exists(name) Then
-'                 MemLong(dispidArray + PTR_SIZE * i) = CLng(funcs(name))
-'             Else
-'                 MemLong(dispidArray + PTR_SIZE * i) = -1 'unrecognised
-'                 'REVIEW: SetLastError DISPGetIDsOfNamesErrors.DISP_E_UNKNOWNNAME ?
-'                 Err.Raise DISPGetIDsOfNamesErrors.DISP_E_UNKNOWNNAME
-'             End If
-'         Next i
-'     End Sub
-
-'     Private Sub IDispatchVB_InvokeVB(ByVal dispIDMember As Long, ByVal riid As LongLong, ByVal lcid As Long, ByVal wFlags As Integer, ByVal pDispParams As LongLong, ByVal pVarResult As LongLong, ByVal pExcepInfo As LongLong, ByVal puArgErr As LongLong)
-'         Assert Not accessor Is Nothing
-'         Logger.Log TraceLevel, "Invoke"
-'         Dim hresult As hResultCode
-'         hresult = CallCOMObjectVTableEntry( _
-'             accessor, IDispatchVTableOffset(IDispatchVTable.Invoke), _
-'             CR_LONG, _
-'             dispIDMember, _
-'             riid, lcid, wFlags, _
-'             pDispParams, _
-'             pVarResult, pExcepInfo, puArgErr _
-'             )
-'     End Sub
-
-'     Private Property Get IModuleInfo_ExtendedITypeInfo() As IUnknown
-'         Set IModuleInfo_ExtendedITypeInfo = ITypeInfo
-'     End Property
-
-'     Private Property Get IModuleInfo_ModuleFuncInfoMap() As Dictionary
-'         Set IModuleInfo_ModuleFuncInfoMap = funcs
-'     End Property
-
-'     Private Property Get IModuleInfo_PublicOnlyModuleAccessor() As Object
-'         Set IModuleInfo_PublicOnlyModuleAccessor = accessor
-'     End Property
-
-'     Private Property Get IModuleInfo_ExtendedModuleAccessor() As Object
-'         Dim dipatchInterface As IDispatchVB 'need to cast me to the correct interface as only IDispatchVB is overloaded
-'         Set dipatchInterface = Me
-'         Set IModuleInfo_ExtendedModuleAccessor = dipatchInterface
-'     End Property
-
-'     'Returns a copy of a null-terminated Unicode string (LPWSTR/LPCWSTR) from the given pointer
-'     Private Function GetStrFromPtrW(ByVal Ptr As LongPtr) As String
-'         SysReAllocString VarPtr(GetStrFromPtrW), Ptr
-'     End Function
-' End Class
-
-'''tB IMPL
 [ COMCreatable (False) ]
 Class SwapClassEX
-
     Implements IDispatchVB 'For the VTable swap
     Implements IModuleInfo 'Easy access to additional methods
-
+    
     Private Declare PtrSafe Function SysReAllocString Lib "oleaut32.dll" (ByVal pBSTR As LongPtr, Optional ByVal pszStrPtr As LongPtr) As Long
-
     Private ReadOnly BaseAccessor As IDispatch
     Private ReadOnly ExtendedTypeInfo As ITypeInfo
-
+    
     Private Sub New(ByVal accessor As IDispatch, ByRef moduleTypeInfo As ITypeInfo)
         Logger.Log TraceLevel, "Creating SwapClass"
         Set BaseAccessor = accessor
@@ -228,46 +122,30 @@ Class SwapClassEX
         caster.Cast(ExtendedTypeInfo) = moduleTypeInfo
         Logger.Log DebugLevel, printf("Stored private ti@{}, supplied@{}", ObjPtr(ExtendedTypeInfo), ObjPtr(moduleTypeInfo))
         
+        'get the vtable slots
+        'See notes in proxy test for an improved approach
+        'TODO also overload IDispatch for IModuleInfo if that is exposed?
         Dim asIDispVB As IDispatchVB = Me
         Dim pAsDispVBVT As LongPtr = MemLongPtr(ObjPtr(asIDispVB))
-        Dim pInvokeVB As LongPtr = pAsDispVBVT + IDispatchVBVTableOffset(IDispatchVBVTable.InvokeVB)
-        Dim pGetIDsOfNamesVB As LongPtr = pAsDispVBVT + IDispatchVBVTableOffset(IDispatchVBVTable.GetIDsOfNamesVB)
         
-        Dim rootIDisp As IDispatchVB = Me
-        Dim pRootDispVT As LongPtr = MemLongPtr(ObjPtr(rootIDisp))
-        Dim pInvokeOriginal As LongPtr = pRootDispVT + IDispatchVTableOffset(IDispatchVTable.Invoke)
-        Dim pGetIDsOfNamesOriginal As LongPtr = pRootDispVT + IDispatchVTableOffset(IDispatchVTable.GetIDsOfNames)
+        Dim pInvokeVB As LongPtr = UnsignedAdd(pAsDispVBVT, IDispatchVBVTableOffset(IDispatchVBVTable.InvokeVB))
+        Dim pGetIDsOfNamesVB As LongPtr = UnsignedAdd(pAsDispVBVT, IDispatchVBVTableOffset(IDispatchVBVTable.GetIDsOfNamesVB))
+        Dim pInvokeOriginal As LongPtr = UnsignedAdd(pAsDispVBVT, IDispatchVBVTableOffset(IDispatchVBVTable.IDispatch.Invoke))
+        Dim pGetIDsOfNamesOriginal As LongPtr = UnsignedAdd(pAsDispVBVT, IDispatchVBVTableOffset(IDispatchVBVTable.IDispatch.GetIDsOfNames))
 
-        'swap the vtable entries
-        Logger.Log TraceLevel, "About to swap the memory"
-        
         Dim unkInterface As IUnknown = Me
         Dim dispInterface As IDispatch = Me
         Logger.Log DebugLevel, printf("unk @{}, disp @{}, default@{}", ObjPtr(unkInterface), ObjPtr(dispInterface), ObjPtr(Me))
-        Logger.Log DebugLevel, printf("root @{}, replacement @{}", ObjPtr(rootIDisp), ObjPtr(asIDispVB))
-        Logger.Log DebugLevel, printf("rootVT @{}, replacementVT @{}", pRootDispVT, pAsDispVBVT)
-        
-        Logger.Log DebugLevel, printf("invoke {} -> {}, getIDs {} -> {}", pInvokeOriginal, pInvokeVB, pGetIDsOfNamesOriginal, pGetIDsOfNamesVB)
-        
-        
-        
-        If ToggleMemoryProtection(pRootDispVT, LenB(IDispatchVTable), PAGE_EXECUTE_READWRITE) Then
-            MemLongPtr(pGetIDsOfNamesOriginal) = MemLongPtr(pGetIDsOfNamesVB)
-            MemLongPtr(pInvokeOriginal) = MemLongPtr(pInvokeVB)
-            ToggleMemoryProtection pRootDispVT, LenB(IDispatchVBVTable)
-        Else
-            Logger.Log FatalLevel, "Unable to unprotect memory"
-            Err.Raise 5
-        End If
+        Logger.Log DebugLevel, printf("IDispatchVB @{}, IDispatchVB_VT @{}", ObjPtr(asIDispVB), pAsDispVBVT)
+    
 
+        'swap the vtable entries
+        Logger.Log TraceLevel, "About to swap the memory"
+        Logger.Log DebugLevel, printf("invoke {}->{} ({}*{})", pInvokeOriginal, pInvokeVB, (pInvokeVB - pInvokeOriginal) / PTR_SIZE, PTR_SIZE)
+        Logger.Log DebugLevel, printf("getIDs {}->{} ({}*{})", pGetIDsOfNamesOriginal, pGetIDsOfNamesVB, (pGetIDsOfNamesVB - pGetIDsOfNamesOriginal) / PTR_SIZE, PTR_SIZE)
         
-        ' Dim pObjVT As LongPtr = MemLongPtr(ObjPtr(asObj))
-        ' Dim GetIdOfNamesSlot As LongPtr = UnsignedAdd(pObjVT, LibMemory.PTR_SIZE * 5) '0,1,2 IUnk 3,4,5,6
-        ' Dim InvokeSlot As LongPtr = UnsignedAdd(pObjVT, LibMemory.PTR_SIZE * 6)
-        ' Logger.Log(DebugLevel, "About to swap the memory")
-        ' 'swap the vtable entries
-        ' MemLongPtr(GetIdOfNamesSlot) = AddressOf asIDispVb.GetIDsOfNamesVB
-        ' MemLongPtr(InvokeSlot) = AddressOf asIDispVb.InvokeVB
+        MemLongPtr(pGetIDsOfNamesOriginal) = MemLongPtr(pGetIDsOfNamesVB)
+        MemLongPtr(pInvokeOriginal) = MemLongPtr(pInvokeVB)
         Logger.Log(DebugLevel, "Memory Swapped")
     End Sub
 
