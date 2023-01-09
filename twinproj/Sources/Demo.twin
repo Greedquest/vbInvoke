@@ -137,7 +137,6 @@ Class SwapClassEX
         Dim dispInterface As IDispatch = Me
         Logger.Log DebugLevel, printf("unk @{}, disp @{}, default@{}", ObjPtr(unkInterface), ObjPtr(dispInterface), ObjPtr(Me))
         Logger.Log DebugLevel, printf("IDispatchVB @{}, IDispatchVB_VT @{}", ObjPtr(asIDispVB), pAsDispVBVT)
-    
 
         'swap the vtable entries
         Logger.Log TraceLevel, "About to swap the memory"
@@ -202,5 +201,4 @@ Class SwapClassEX
     Private Function GetStrFromPtrW(ByVal Ptr As LongPtr) As String
         SysReAllocString VarPtr(GetStrFromPtrW), Ptr
     End Function
-
 End Class
