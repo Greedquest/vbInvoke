@@ -112,7 +112,7 @@ Class SwapClassEX
     Implements IModuleInfo 'Easy access to additional methods
     
     Private Declare PtrSafe Function SysReAllocString Lib "oleaut32.dll" (ByVal pBSTR As LongPtr, Optional ByVal pszStrPtr As LongPtr) As Long
-    Private ReadOnly BaseAccessor As IDispatch
+    Private ReadOnly BaseAccessor As vbInvoke.IDispatch
     Private ReadOnly ExtendedTypeInfo As ITypeInfo
     
     Private Sub New(ByVal accessor As IDispatch, ByRef moduleTypeInfo As ITypeInfo)

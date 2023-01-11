@@ -58,8 +58,8 @@ Interface IDispatch Extends IUnknown
     '     [ in, size_is(cVarRef)] UINT *rgVarRefIdx,
     '     [ in, out, size_is(cVarRef)] VARIANTARG *rgVarRef);
     ' }
-    Sub GetTypeInfoCount()
-    Sub GetTypeInfo()
+    Sub DummyGetTypeInfoCount()
+    Sub DummyGetTypeInfo()
     Sub GetIDsOfNames( _
         ByVal riid As LongPtr, _
         ByVal namesArray As LongPtr, _
@@ -87,29 +87,3 @@ Interface IDispatch Extends IUnknown
         '  [out] UINT * puArgErr
         ');
 End Interface
-
-Module TempVtables
-
-    Public Type IUnknownVTable
-        QueryInterface As LongPtr
-        AddRef As LongPtr
-        ReleaseRef As LongPtr
-    End Type: Public IUnknownVTable As IUnknownVTable
-
-    Public Type IDispatchVTable
-        IUnknown As IUnknownVTable
-        GetTypeInfoCount As LongPtr
-        GetTypeInfo As LongPtr
-        GetIDsOfNames As LongPtr
-        Invoke As LongPtr
-    End Type: Public IDispatchVTable As IDispatchVTable
-
-    Public Property Get IUnknownVTableOffset(ByRef member As LongPtr) As LongPtr
-        IUnknownVTableOffset = VarPtr(member) - VarPtr(IUnknownVTable)
-    End Property
-
-    Public Property Get IDispatchVTableOffset(ByRef member As LongPtr) As LongPtr
-        IDispatchVTableOffset = VarPtr(member) - VarPtr(IDispatchVTable)
-    End Property
-End Module
-
