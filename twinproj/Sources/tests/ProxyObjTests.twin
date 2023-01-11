@@ -1,0 +1,17 @@
+
+Public Module ProxyObjTests
+    Public Sub testSimplestSwap()
+        Dim baseObject As Object = New Collection
+        baseObject.add "foo"
+        
+        'should call our swapped function!
+        Dim proxyObject As Object = makeProxy(baseObject)
+        Logger.Log TraceLevel, "Proxy made"
+        proxyObject.add "bar"
+        
+        Dim item As Variant
+        For Each item In baseObject
+            Logger.Log InfoLevel, printf("Got a '{}'", item)
+        Next
+    End Sub
+End Module

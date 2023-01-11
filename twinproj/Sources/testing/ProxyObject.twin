@@ -1,0 +1,57 @@
+[ COMCreatable (False) ]
+Private Class SimplestSwap
+    'TODO don't use IDispatchVB because then the pointer to IDispatch is wrong and we cannot overload root interface
+    'NOTE if the consumer doesn't know any other interfaces of this class, they cannot leave the Object we provide
+    'Except casting to IUnknown and back. 
+    
+	Implements IDispatchVB
+    Private ReadOnly BaseAccessor As IDispatch
+    
+    Private Sub New(ByVal BaseAccessor As IDispatch)
+        Set Me.BaseAccessor = BaseAccessor
+        Dim asSwapInterface As IDispatchVB = Me
+        Dim rootInterface As IDispatchVB = Me 'TODO overload IDispatch
+        Dim pOverloadVTable As LongPtr = MemLongPtr(ObjPtr(asSwapInterface))
+        Dim pRootVTable As LongPtr = MemLongPtr(ObjPtr(rootInterface))
+        'addressof classmethod fails as it is per instance temp stub fn
+        Logger.Log DebugLevel, printf("About to perform swap{0} base {1}{0} swap {2}{0} diff {3}*{4}", " - ", pRootVTable, pOverloadVTable, (pOverloadVTable - pRootVTable) / PTR_SIZE, PTR_SIZE)
+        MemLongPtr(pRootVTable + PTR_SIZE * 5) = MemLongPtr(pOverloadVTable + PTR_SIZE * 7) 'getIDsOfNames
+        MemLongPtr(pRootVTable + PTR_SIZE * 6) = MemLongPtr(pOverloadVTable + PTR_SIZE * 8) 'invoke
+        Logger.Log TraceLevel, "VT swap complete"
+    End Sub
+    
+    
+    Public Function GetOverloadedInterface() As Object
+    'TODO overload QI or use root IDispatch to avoid this function.
+    'Overloading QI to divert IDispatch->IDispatchVB may break other interfaces.
+    'Especially if e.g. IDispatchVB->GetITypeInfo calls QI root IDispatch - that would make an infinite loop
+        Logger.Log TraceLevel, "GetOverloadedInterface"
+        Dim asSwapInterface As IDispatchVB = Me
+        Return asSwapInterface
+    End Function
+
+    Private Sub IDispatchVB_GetIDsOfNamesVB(ByVal riid As LongPtr, ByVal namesArray As LongPtr, ByVal cNames As Long, ByVal lcid As Long, ByVal dispidArray As LongPtr)
+        Logger.Log TraceLevel, "IDispatchVB_GetIDsOfNamesVB"
+        BaseAccessor.GetIDsOfNames(riid, namesArray, cNames, lcid, dispidArray)
+        Err.ReturnHResult = Err.LastHResult 'maybe not needed...  
+    End Sub
+    
+    Private Sub IDispatchVB_InvokeVB(ByVal dispIDMember As Long, ByVal riid As LongPtr, ByVal lcid As Long, ByVal wFlags As Integer, ByVal pDispParams As LongPtr, ByVal pVarResult As LongPtr, ByVal pExcepInfo As LongPtr, ByVal puArgErr As LongPtr)
+        Logger.Log DebugLevel, printf("IDispatchVB_InvokeVB dispid={}", dispIDMember)
+        BaseAccessor.Invoke(dispIDMember, _
+            riid, lcid, wFlags, _
+            pDispParams, _
+            pVarResult, pExcepInfo, puArgErr)
+        Err.ReturnHResult = Err.LastHResult 'maybe not needed...        
+    End Sub
+End Class
+
+Module ProxyObjectEntryPoint
+    [ DllExport ]
+    Public Function makeProxy(ByVal baseObj As Object) As Object
+        Logger.Log TraceLevel, printf("making proxy for {}", ObjPtr(baseObj))
+        Dim result As SimplestSwap = New SimplestSwap(baseObj)
+        Return result.GetOverloadedInterface
+    End Function
+
+End Module
