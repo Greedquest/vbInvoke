@@ -218,7 +218,7 @@ Module TypeInfoHelper
                 ElseIf result(funcName) <> .memid Then
                     Err.Raise 5, Description:=funcName & "is already associated with another dispid"
                 Else
-                Assert .INVOKEKIND <> INVOKE_METHOD 'this method & dispid should not appear twice
+                Assert .INVOKEKIND <> INVOKE_METHOD, "this method & dispid should not appear twice"
                 End If
                 
             End With
@@ -316,7 +316,7 @@ Class TypeLibInfo
     End Property
 
     Public Property Get ITypeLib() As ITypeLib
-        Assert Not this.ITypeLib Is Nothing
+        Assert Not this.ITypeLib Is Nothing, "TypeLibInfo.ITypeLib Is Nothing"
         Set ITypeLib = this.ITypeLib
     End Property
 

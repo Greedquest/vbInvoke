@@ -2,7 +2,7 @@
 	"configuration.inherits": "Defaults",
 	"project.appTitle": "vbInvoke",
 	"project.buildPath": "${SourcePath}\\Build\\${ProjectName}_${Architecture}.${FileExtension}",
-	"project.buildType": "Standard DLL",
+	"project.buildType": "ActiveX DLL",
 	"project.description": "Execute VBA code à la RubberDuck",
 	"project.exportAfterSave": true,
 	"project.exportPath": "${SourcePath}\\twinproj",

@@ -135,7 +135,7 @@ Module VBETypeLib
         Logger.Log TraceLevel, "Try iterate over typelib"
         Do While typeLibPtrs.TryGetNext(outTypeLib)
             Dim pExtendedTypeLib As LongPtr
-            Assert typeLibPtrs.tryGetCurrentRawITypeLibPtr(pExtendedTypeLib)
+            Assert typeLibPtrs.tryGetCurrentRawITypeLibPtr(pExtendedTypeLib), "Current tl pointer is not valid"
             Assert pExtendedTypeLib = ObjPtr(outTypeLib.ITypeLib), "TypeLib pointer has changed"
             Dim tlName As String = outTypeLib.name
             LogManager.Log InfoLevel, printf("Discovered: {}@{}", tlName, pExtendedTypeLib)
