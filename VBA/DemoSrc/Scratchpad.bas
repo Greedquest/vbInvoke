@@ -21,8 +21,8 @@ Public Sub TestPubPrivAccessorHardcoded()
     Dim outTi As IUnknown
     Dim accessor As Object
     Set accessor = GetFullAccessor("ExampleModule", ThisWorkbook.VBProject, outTi)
-    Debug.Print ObjPtr(accessor)
-    Debug.Print ObjPtr(outTi)
+    Debug.Print "accessor@"; ObjPtr(accessor)
+    Debug.Print "ti@"; ObjPtr(outTi)
     Debug.Print accessor.Foo(13)
 End Sub
 
@@ -32,10 +32,14 @@ Public Sub TestProxyHardcode()
     Set baseObject = New Collection
     baseObject.Add "foo"
             
-    Dim proxy As Object
+    'test we can use any IDispatch interface
+    Dim proxy As stdole.IUnknown
     Set proxy = makeProxy(baseObject)
     'should call our swapped function!
-    proxy.Add "bar"
+    
+    Dim proxyObj As Object
+    Set proxyObj = proxy
+    proxyObj.Add "bar"
       
     Dim item As Variant
     For Each item In baseObject
