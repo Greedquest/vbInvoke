@@ -75,8 +75,8 @@ Class DLLFunctionsObj
     Public Function GetFullAccessor(ByVal moduleName As Variant, ByVal proj As VBProject, ByRef outPrivateTI As ITypeInfo) As Object
     	Return DllFunctions.GetFullAccessor(moduleName, proj, outPrivateTI)
     End Function
-	
 End Class
+
 Module DllFunctions
 	[ DllExport ]
     Public Function GetPublicAccessor(ByVal moduleName As Variant, ByVal proj As VBProject) As Object
