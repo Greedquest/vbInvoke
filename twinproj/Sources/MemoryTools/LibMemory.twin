@@ -101,6 +101,7 @@ Module LibMemory
         #End If
     #End If
 
+    Public Const NULL_PTR As LongPtr = 0
     #If Win64 Then
         Public Const PTR_SIZE As Long = 8
         Public Const VARIANT_SIZE As Long = 24

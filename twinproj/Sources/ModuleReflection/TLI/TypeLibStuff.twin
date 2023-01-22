@@ -89,7 +89,6 @@ Interface ITypeLib Extends IUnknown
 '            _Outptr_opt_  BSTR *pBstrHelpFile) = 0;
     Sub GetDocumentation(ByVal memid As DISPID, ByRef outName As String, Optional ByVal pBstrDocString As LongPtr = NULL_PTR, Optional ByVal pdwHelpContext As LongPtr = NULL_PTR, Optional ByVal pBstrHelpFile As LongPtr = NULL_PTR)
     Sub DummyIsName()
-
     'HRESULT FindName(
     '  [in, out] LPOLESTR  szNameBuf,
     '  [in]      ULONG     lHashVal,
@@ -181,14 +180,18 @@ Interface ITypeInfo Extends IUnknown
     Sub DummyReleaseVarDesc()
 End Interface
 
-
+[ Description ("ITypeInfo parsing/navigation without TLBINF32.dll. We don't want that because (1) It's no longer included in Windows, and (2) It ignores the type info marked as 'private', which we want to see") ]
 Module TypeInfoHelper
 	'Created by JAAFAR
     'Src: https://www.vbforums.com/showthread.php?846947-RESOLVED-Ideas-Wanted-ITypeInfo-like-Solution&p=5449985&viewfull=1#post5449985
     'Modified by wqweto 2020 (clean up)
     'Modified by Greedo 2022 (refactor)
     'Modified by Greedo Oct 2022 (convert to twinBASIC)
-    '@ModuleDescription("ITypeInfo parsing/navigation without TLBINF32.dll. We don't want that because (1) It's no longer included in Windows, and (2) It ignores the type info marked as 'private', which we want to see")
+    
+    Public Enum KnownMemberIDs
+        MEMBERID_NIL = -1
+    End Enum
+    
     [ Description ("Returns a map of funcName:dispid given a certain ITypeInfo without TLBINF32.dll") ]
     Public Function GetFuncDispidFromTypeInfo(ByVal ITypeInfo As ITypeInfo) As Scripting.Dictionary
         Dim attrs As TYPEATTR
