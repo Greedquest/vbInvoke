@@ -1,13 +1,15 @@
 
 Public Module ProxyObjTests
     Public Sub testSimplestSwap()
-        Dim baseObject As Object = New Collection
-        baseObject.add "foo"
+        Dim baseObject As Object = New Dictionary
+        Logger.Log InfoLevel, printf("TypeName(baseObject)='{}'", TypeName(baseObject))
+        baseObject.add "foo", 11
         
         'should call our swapped function!
         Dim proxyObject As Object = makeProxy(baseObject)
         Logger.Log TraceLevel, "Proxy made"
-        proxyObject.add "bar"
+        Logger.Log InfoLevel, printf("TypeName(proxyObject)='{}'", TypeName(proxyObject))
+        proxyObject.add "bar", 12
         
         Dim item As Variant
         For Each item In baseObject

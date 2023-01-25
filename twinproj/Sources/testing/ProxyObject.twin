@@ -7,7 +7,23 @@ Private Class SimplestSwap
 	'Implements IDispatchVB
     Private ReadOnly BaseAccessor As IDispatch
     
-    'DO NOT REORDER these 2 functions. Do NOT add new properties above them. This will alter VTable offsets
+    'DO NOT REORDER these 4 functions. Do NOT add new properties above them. This will alter VTable offsets
+    Private Sub IDispatch_GetTypeInfoCount(ByRef outTICount As Long)
+        Logger.Log TraceLevel, "IDispatchVB_GetIDsOfNamesVB"
+        BaseAccessor.GetTypeInfoCount outTICount
+        Err.ReturnHResult = Err.LastHResult
+    End Sub
+    
+    Private Sub IDispatch_GetTypeInfo( _ 
+        ByVal tiIndex As Long, _
+        ByVal lcid As Long, _
+        ByRef outpITypeInfo As LongPtr)
+        Logger.Log DebugLevel, printf("IDIspatch_GetTypeInfo {}", tiIndex)
+        on error resume next
+        BaseAccessor.GetTypeInfo tiIndex, lcid, outpITypeInfo
+        Err.ReturnHResult = Err.LastHResult 'maybe not needed...   
+    End Sub
+    
     Private Sub IDispatch_GetIDsOfNames(ByVal riid As LongPtr, ByVal namesArray As LongPtr, ByVal cNames As Long, ByVal lcid As Long, ByVal dispidArray As LongPtr)
         Logger.Log TraceLevel, "IDispatchVB_GetIDsOfNamesVB"
         BaseAccessor.GetIDsOfNames(riid, namesArray, cNames, lcid, dispidArray)
@@ -28,9 +44,12 @@ Private Class SimplestSwap
         Dim pDefaultVTable As LongPtr = MemLongPtr(ObjPtr(Me))
         'addressof classmethod fails as it is per instance temp stub fn
         Logger.Log TraceLevel, "About to perform VT swap"
-        MemLongPtr(pDefaultVTable + PTR_SIZE * 5) = MemLongPtr(pDefaultVTable + PTR_SIZE * 7)'AddressOf IDispatchVB_GetIDsOfNamesVB 'MemLongPtr(pOverloadVTable + PTR_SIZE * 7) 'getIDsOfNames
-        MemLongPtr(pDefaultVTable + PTR_SIZE * 6) = MemLongPtr(pDefaultVTable + PTR_SIZE * 8)'AddressOf IDispatchVB_InvokeVB 'MemLongPtr(pOverloadVTable + PTR_SIZE * 8) 'invoke
-        Logger.Log TraceLevel, "VT swap complete"
+        ' CopyMemory pDefaultVTable + PTR_SIZE * 3, pDefaultVTable + PTR_SIZE * 7, 4 * PTR_SIZE
+        MemLongPtr(pDefaultVTable + PTR_SIZE * 3) = MemLongPtr(pDefaultVTable + PTR_SIZE * 7)'AddressOf IDispatch_GetTypeInfoCount  
+        MemLongPtr(pDefaultVTable + PTR_SIZE * 4) = MemLongPtr(pDefaultVTable + PTR_SIZE * 8)'AddressOf IDispatch_GetTypeInfo
+        MemLongPtr(pDefaultVTable + PTR_SIZE * 5) = MemLongPtr(pDefaultVTable + PTR_SIZE * 9)'AddressOf IDispatchVB_GetIDsOfNamesVB 'MemLongPtr(pOverloadVTable + PTR_SIZE * 7) 'getIDsOfNames
+        MemLongPtr(pDefaultVTable + PTR_SIZE * 6) = MemLongPtr(pDefaultVTable + PTR_SIZE * 10)'AddressOf IDispatchVB_InvokeVB 'MemLongPtr(pOverloadVTable + PTR_SIZE * 8) 'invoke
+        Logger.Log TraceLevel, printf("VT swap complete {}<-{} ({}[{}])", pDefaultVTable + PTR_SIZE * 3, pDefaultVTable + PTR_SIZE * 7, 4 * PTR_SIZE, PTR_SIZE)
     End Sub
     
 End Class
