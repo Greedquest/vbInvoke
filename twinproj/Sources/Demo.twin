@@ -69,25 +69,26 @@ Module DllEntryPoints
     [ DllExport ]
     Public Function GetExtendedModuleAccessor(ByVal moduleName As Variant, ByVal proj As VBProject, ByRef outPrivateTI As ITypeInfo) As Object
         Logger.Log InfoLevel, printf("Invoking GetExtendedModuleAccessor on {}.{}", proj.Name, moduleName)
+        
+        'Get the base accessor (same as GetStandardModuleAccessor above) and keep the extended typelib
+        ' which can be used to obtain private type info 
         Dim outPublicTI As ITypeInfo
         Dim outExtendedTL As TypeLibInfo
         Dim baseAccessor As Object = StdModuleAccessor(moduleName, proj, proj.Name, outPublicTI, outExtendedTL)
         Logger.Log InfoLevel, printf("Got ITypeInfo @{} + ITypeLib* @{}", ObjPtr(outPublicTI), ObjPtr(outExtendedTL.ITypeLib))
         
-        'HRESULT FindName(
-        '  [in, out] LPOLESTR  szNameBuf,
-        '  [in]      ULONG     lHashVal,
-        '  [out]     ITypeInfo **ppTInfo,
-        '  [out]     MEMBERID  *rgMemId,
-        '  [in, out] USHORT * pcFound
-        ');
-        'Dim outPrivateTI As ITypeInfo
+        'The StdModuleAccessor function does obtain the correct Extended ITypeInfo
+        ' however it gets lost along the way (since VBA modules ITypeInfo is double implemented public & private)
+        'Therefore to guarantee we have the full type info, we can get it from the hidden typelib
+        ' and be VERY CAREFUL not to call QueryInterface(IID_ITypeInfo) on it, since this would resolve
+        ' back to the public-only type-info
         Dim memberID As DISPID
-        Dim pcFound As Integer = 1 'number of matches
+        Dim pcFound As Integer = 1 'to get only the first matching type-info which cshould be correct
         outExtendedTL.ITypeLib.FindName StrPtr(moduleName), 0, outPrivateTI, memberID, pcFound
         Logger.Log InfoLevel, printf("{} PrivateITypeInfo @{}", pcFound, ObjPtr(outPrivateTI))
         
-        ' Return baseAccessor
+        'This tapes the full ITypeInfo to the StdModuleAccessor, allowing for IDispatch to handle the
+        ' calls to both public and private methods
         Dim swapClassInfo As Object = New SwapClassEX(baseAccessor, outPrivateTI)
         Logger.Log TraceLevel, "Created swap class successfully"
         Return swapClassInfo
