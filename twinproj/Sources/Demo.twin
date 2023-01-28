@@ -93,13 +93,10 @@ Module DllEntryPoints
         Logger.Log TraceLevel, "Created swap class successfully"
         Return swapClassInfo
     End Function
-
 End Module
 
 [ COMCreatable (False) ]
 Class SwapClassEX
-    'Implements IModuleInfo 'Easy access to additional methods
-    
     Private Declare PtrSafe Function SysReAllocString Lib "oleaut32.dll" (ByVal pBSTR As LongPtr, Optional ByVal pszStrPtr As LongPtr) As Long
     Private ReadOnly BaseAccessor As vbInvoke.IDispatch 'don't use stdole since that doesn't have the methods visible
     Private ReadOnly ExtendedTypeInfo As ITypeInfo
@@ -117,15 +114,10 @@ Class SwapClassEX
         ByVal lcid As Long, _
         ByRef outpITypeInfo As LongPtr)
         Logger.Log DebugLevel, printf("IDIspatch_GetTypeInfo {}", tiIndex)
-        If tiIndex = 0 Then
-            Logger.Log TraceLevel, "Returning Extended typeInfo instead"
-            outpITypeInfo = ObjPtr(ExtendedTypeInfo)
-        Else
-            'TODO return ExtendedTypeInfo instead
-            On Error Resume Next
-            BaseAccessor.GetTypeInfo tiIndex, lcid, outpITypeInfo
-            Err.ReturnHResult = Err.LastHResult 'REVIEW maybe not needed...   
-        End If
+        'TODO find a way to return extended typeinfo (objptr(ExtendedTypeInfo) doesn't help)
+        On Error Resume Next
+        BaseAccessor.GetTypeInfo tiIndex, lcid, outpITypeInfo
+        Err.ReturnHResult = Err.LastHResult 'REVIEW maybe not needed...   
     End Sub
  
     Private Sub IDispatch_GetIDsOfNames(ByVal riid As LongPtr, ByVal namesArray As LongPtr, ByVal cNames As Long, ByVal lcid As Long, ByVal dispidArray As LongPtr)
@@ -178,23 +170,6 @@ Class SwapClassEX
         If result Is Nothing Then Set result = TypeInfoHelper.GetFuncDispidFromTypeInfo(ExtendedTypeInfo)
         Set funcs = result
     End Property
-
-    ' Private Property Get IModuleInfo_ExtendedITypeInfo() As IUnknown
-    '     Return ExtendedTypeInfo
-    ' End Property
-
-    ' Private Property Get IModuleInfo_ModuleFuncInfoMap() As Dictionary
-    '     Return funcs 'TODO clone, this is mutable
-    ' End Property
-
-    ' Private Property Get IModuleInfo_PublicOnlyModuleAccessor() As Object
-    '     Return BaseAccessor
-    ' End Property
-
-    ' Private Property Get IModuleInfo_ExtendedModuleAccessor() As Object
-    '     Dim dipatchInterface As IDispatch = Me 'need to cast me to the correct interface as only IDispatchVB is overloaded
-    '     Return dipatchInterface
-    ' End Property
 
     'Returns a copy of a null-terminated Unicode string (LPWSTR/LPCWSTR) from the given pointer
     Private Function GetStrFromPtrW(ByVal Ptr As LongPtr) As String
