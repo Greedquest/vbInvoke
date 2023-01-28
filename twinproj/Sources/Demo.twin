@@ -38,77 +38,141 @@ Module Logging
     End Sub
 End Module
 
-' Module ExampleModule
-' 	Option Explicit
+Public Class GenericCaster(Of TSource, TDest)
+	Private Declare PtrSafe Function ShallowCopy Lib "msvbvm60" Alias "__vbaObjSetAddref" (ByRef Dest As Any, ByVal pSourceInterface As LongPtr) As Long
+    Public Property Let Cast(ByRef Dest As TDest, ByRef Source As TSource)
+        ShallowCopy Dest, ObjPtr(Source)
+    End Property
+End Class
 
-' 	Private Function Foo(ByVal bar As Long) As String
-' 		Foo = "HelloWorld" & String(bar, "!")
-' 	End Function
+[ AppObject ]
+Public Class TypeLibEntryPoints
+    Public Function GetStandardModuleAccessor(ByVal moduleName As Variant, ByVal proj As VBProject) As Object
+    	Return DllEntryPoints.GetStandardModuleAccessor(moduleName, proj)
+    End Function
+    
+    Public Function GetExtendedModuleAccessor(ByVal moduleName As Variant, ByVal proj As VBProject, ByRef outPrivateTI As ITypeInfo) As Object
+    	Return DllEntryPoints.GetExtendedModuleAccessor(moduleName, proj, outPrivateTI)
+    End Function
+End Class
 
-' 	Public Sub Baz()
-' 		MsgBox "Hi!"
-' 	End Sub
-
-' 	Public Property Get val() As Double
-' 		val = Rnd()
-' 	End Property
-
-' 	Public Property Let val(ByVal rhs As Double)
-' 		Debug.Print "Ignoring val=" ; rhs
-' 	End Property
-' End Module
-
-
-Module Experiments
-
-	Private test_val As Double
-
-	Public Sub testCallingPrivateMethod(ByVal wb As Excel.Workbook)
-		Dim exampleMod As Object
-		Set exampleMod = GetFancyAccessor(wb.VBProject, "ExampleModule")
-		Assert exampleMod.Foo(2) = "HelloWorld!!"
-	End Sub
-
-	Public Sub testCallingErrorMethod(ByVal wb As Excel.Workbook)
-		Dim thisMod As Object
-		Set thisMod = GetFancyAccessor(wb.VBProject, "Experiments")
-		On Error Resume Next 'untrappable errors unfortunately, but also does not crash which is very good
-		thisMod.raisesError
-		Assert Err.Number = 5
-	End Sub
-
-	Public Sub testTerminateDoesNotCrash(ByVal wb As Excel.Workbook)
-		GetFancyAccessor(wb.VBProject, "Experiments").terminate
-		Assert False 'unreachable
-	End Sub
-
-	Public Sub testModuleReflection(ByVal wb As Excel.Workbook)
-		Dim info As IModuleInfo
-		Set info = GetFancyAccessor(wb.VBProject, "ExampleModule")
-		Assert Join(info.ModuleFuncInfoMap.Keys()) = Join(Array("Foo", "Baz", "val")) 'val appears twice in module but only once here since it is a Let/Set
-	End Sub
-
-	Public Sub testProps(ByVal wb As Excel.Workbook)
-		test_val = 9
-		With GetFancyAccessor(wb.VBProject, "Experiments")
-			.val = 1.7
-			Assert .val = 1.7
-		End With
-	End Sub
-
-	Private Sub raisesError()
-		Err.Raise 5
-	End Sub
-
-	Private Sub terminate()
-		End
-	End Sub
-
-	Public Property Get val() As Double
-		val = test_val
-	End Property
-
-	Public Property Let val(ByVal rhs As Double)
-		test_val = rhs
-	End Property
+Module DllEntryPoints
+	[ DllExport ]
+    Public Function GetStandardModuleAccessor(ByVal moduleName As Variant, ByVal proj As VBProject) As Object
+        Logger.Log InfoLevel, printf("Invoking GetStandardModuleAccessor on {}.{}", proj.Name, moduleName)
+        Dim outPublicTI As ITypeInfo
+        Dim outExtendedTL As TypeLibInfo
+        Set GetStandardModuleAccessor = StdModuleAccessor(moduleName, proj, proj.Name, outPublicTI, outExtendedTL)
+        Logger.Log InfoLevel, printf("Discarding ITypeInfo @{} + ITypeLib* @{}", ObjPtr(outPublicTI), ObjPtr(outExtendedTL.ITypeLib))
+    End Function
+    
+    [ DllExport ]
+    Public Function GetExtendedModuleAccessor(ByVal moduleName As Variant, ByVal proj As VBProject, ByRef outPrivateTI As ITypeInfo) As Object
+        Logger.Log InfoLevel, printf("Invoking GetExtendedModuleAccessor on {}.{}", proj.Name, moduleName)
+        
+        'Get the base accessor (same as GetStandardModuleAccessor above) and keep the extended typelib
+        ' which can be used to obtain private type info 
+        Dim outPublicTI As ITypeInfo
+        Dim outExtendedTL As TypeLibInfo
+        Dim baseAccessor As Object = StdModuleAccessor(moduleName, proj, proj.Name, outPublicTI, outExtendedTL)
+        Logger.Log InfoLevel, printf("Got ITypeInfo @{} + ITypeLib* @{}", ObjPtr(outPublicTI), ObjPtr(outExtendedTL.ITypeLib))
+        
+        'The StdModuleAccessor function does obtain the correct Extended ITypeInfo
+        ' however it gets lost along the way (since VBA modules ITypeInfo is double implemented public & private)
+        'Therefore to guarantee we have the full type info, we can get it from the hidden typelib
+        ' and be VERY CAREFUL not to call QueryInterface(IID_ITypeInfo) on it, since this would resolve
+        ' back to the public-only type-info
+        Dim memberID As DISPID
+        Dim pcFound As Integer = 1 'to get only the first matching type-info which cshould be correct
+        outExtendedTL.ITypeLib.FindName StrPtr(moduleName), 0, outPrivateTI, memberID, pcFound
+        Logger.Log InfoLevel, printf("{} PrivateITypeInfo @{}", pcFound, ObjPtr(outPrivateTI))
+        
+        'This tapes the full ITypeInfo to the StdModuleAccessor, allowing for IDispatch to handle the
+        ' calls to both public and private methods
+        Dim swapClassInfo As Object = New SwapClassEX(baseAccessor, outPrivateTI)
+        Logger.Log TraceLevel, "Created swap class successfully"
+        Return swapClassInfo
+    End Function
 End Module
+
+[ COMCreatable (False) ]
+Class SwapClassEX
+    Private Declare PtrSafe Function SysReAllocString Lib "oleaut32.dll" (ByVal pBSTR As LongPtr, Optional ByVal pszStrPtr As LongPtr) As Long
+    Private ReadOnly BaseAccessor As vbInvoke.IDispatch 'don't use stdole since that doesn't have the methods visible
+    Private ReadOnly ExtendedTypeInfo As ITypeInfo
+ 
+    'DO NOT REORDER these 4 functions. Do NOT add new properties above them. This will alter VTable offsets
+    Private Sub IDispatch_GetTypeInfoCount(ByRef outTICount As Long)
+        Logger.Log TraceLevel, "IDispatch_GetTypeInfoCount"
+        BaseAccessor.GetTypeInfoCount outTICount
+        Logger.Log DebugLevel, "outTICount = " & outTICount
+        Err.ReturnHResult = Err.LastHResult
+    End Sub
+    
+    Private Sub IDispatch_GetTypeInfo( _ 
+        ByVal tiIndex As Long, _
+        ByVal lcid As Long, _
+        ByRef outpITypeInfo As LongPtr)
+        Logger.Log DebugLevel, printf("IDIspatch_GetTypeInfo {}", tiIndex)
+        'TODO find a way to return extended typeinfo (objptr(ExtendedTypeInfo) doesn't help)
+        On Error Resume Next
+        BaseAccessor.GetTypeInfo tiIndex, lcid, outpITypeInfo
+        Err.ReturnHResult = Err.LastHResult 'REVIEW maybe not needed...   
+    End Sub
+ 
+    Private Sub IDispatch_GetIDsOfNames(ByVal riid As LongPtr, ByVal namesArray As LongPtr, ByVal cNames As Long, ByVal lcid As Long, ByVal dispidArray As LongPtr)
+        Logger.Log TraceLevel, "IDispatchVB_GetIDsOfNamesVB"
+        Dim i As Long
+        For i = 0 To cNames - 1
+            Dim name As String = GetStrFromPtrW(MemLongPtr(namesArray + PTR_SIZE * i))
+            Logger.Log DebugLevel, printf("Checking for {}", name)
+            If funcs.Exists(name) Then
+                MemLong(dispidArray + PTR_SIZE * i) = CLng(funcs(name))
+            Else
+                MemLong(dispidArray + PTR_SIZE * i) = -1 'unrecognised
+                Err.ReturnHResult = DISPGetIDsOfNamesErrors.DISP_E_UNKNOWNNAME
+            End If
+        Next i
+    End Sub
+
+    Private Sub IDispatch_Invoke(ByVal dispIDMember As Long, ByVal riid As LongPtr, ByVal lcid As Long, ByVal wFlags As Integer, ByVal pDispParams As LongPtr, ByVal pVarResult As LongPtr, ByVal pExcepInfo As LongPtr, ByVal puArgErr As LongPtr)
+        Logger.Log DebugLevel, printf("IDispatchVB_InvokeVB dispid={}", dispIDMember)
+        BaseAccessor.Invoke(dispIDMember, _
+            riid, lcid, wFlags, _
+            pDispParams, _
+            pVarResult, pExcepInfo, puArgErr)
+        Err.ReturnHResult = Err.LastHResult 'REVIEW maybe not needed...  
+    End Sub
+    
+    Private Sub New(ByVal accessor As IDispatch, ByRef moduleTypeInfo As ITypeInfo)
+        Logger.Log TraceLevel, "Creating SwapClass"
+        Set BaseAccessor = accessor
+        Dim caster As New GenericCaster(Of ITypeInfo, ITypeInfo)
+        caster.Cast(ExtendedTypeInfo) = moduleTypeInfo
+        Logger.Log DebugLevel, printf("Stored private ti@{}, supplied@{}", ObjPtr(ExtendedTypeInfo), ObjPtr(moduleTypeInfo))
+        
+        Dim pDefaultVTable As LongPtr = MemLongPtr(ObjPtr(Me))
+        'addressof classmethod fails as it is per instance temp stub fn
+        Logger.Log TraceLevel, "About to perform VT swap"
+        ' CopyMemory pDefaultVTable + PTR_SIZE * 3, pDefaultVTable + PTR_SIZE * 7, 4 * PTR_SIZE
+        MemLongPtr(pDefaultVTable + PTR_SIZE * 3) = MemLongPtr(pDefaultVTable + PTR_SIZE * 7)'AddressOf IDispatch_GetTypeInfoCount  
+        MemLongPtr(pDefaultVTable + PTR_SIZE * 4) = MemLongPtr(pDefaultVTable + PTR_SIZE * 8)'AddressOf IDispatch_GetTypeInfo
+        MemLongPtr(pDefaultVTable + PTR_SIZE * 5) = MemLongPtr(pDefaultVTable + PTR_SIZE * 9)'AddressOf IDispatchVB_GetIDsOfNamesVB 'MemLongPtr(pOverloadVTable + PTR_SIZE * 7) 'getIDsOfNames
+        MemLongPtr(pDefaultVTable + PTR_SIZE * 6) = MemLongPtr(pDefaultVTable + PTR_SIZE * 10)'AddressOf IDispatchVB_InvokeVB 'MemLongPtr(pOverloadVTable + PTR_SIZE * 8) 'invoke
+        Logger.Log TraceLevel, printf("VT swap complete {}<-{} ({}[{}])", pDefaultVTable + PTR_SIZE * 3, pDefaultVTable + PTR_SIZE * 7, 4 * PTR_SIZE, PTR_SIZE)
+
+    End Sub
+
+    Private Property Get funcs() As Dictionary
+        'NOTE cached assuming you cannot modify typeinfo at all at runtime (i.e. you cannot edit a module while vba is running)
+        'TODO Check if this holds True for VBComponents.Add
+        Static result As Dictionary
+        If result Is Nothing Then Set result = TypeInfoHelper.GetFuncDispidFromTypeInfo(ExtendedTypeInfo)
+        Set funcs = result
+    End Property
+
+    'Returns a copy of a null-terminated Unicode string (LPWSTR/LPCWSTR) from the given pointer
+    Private Function GetStrFromPtrW(ByVal Ptr As LongPtr) As String
+        SysReAllocString VarPtr(GetStrFromPtrW), Ptr
+    End Function
+End Class

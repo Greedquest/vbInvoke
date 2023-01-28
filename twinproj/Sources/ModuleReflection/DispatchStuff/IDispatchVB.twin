@@ -1,0 +1,149 @@
+Module IDispatchVBTypes
+    Public Type IDispatchVBVTable
+        IDispatch As IDispatchVTable
+        GetIDsOfNamesVB As LongPtr
+        InvokeVB As LongPtr
+    End Type: Public IDispatchVBVTable As IDispatchVBVTable
+    
+    Public Property Get IDispatchVBVTableOffset(ByRef member As LongPtr) As LongPtr
+        IDispatchVBVTableOffset = VarPtr(member) - VarPtr(IDispatchVBVTable)
+    End Property
+End Module
+
+Interface IDispatchVB
+	'IDispatch:: GetIDsOfNames method
+    'IDispatch:: GetTypeInfo method
+    'IDispatch:: GetTypeInfoCount method
+    'IDispatch:: invoke method
+
+    Sub GetIDsOfNamesVB( _
+        ByVal riid As LongPtr, _
+        ByVal namesArray As LongPtr, _
+        ByVal cNames As Long, _
+        ByVal lcid As Long, _
+        ByVal dispidArray As LongPtr _
+        )
+        'HRESULT GetIDsOfNames(
+        '  [in]  REFIID   riid,
+        '  [in]  LPOLESTR *rgszNames,
+        '  [in]  UINT     cNames,
+        '  [in]  LCID     lcid,
+        '  [out] dispid * rgDispId
+        ');
+
+    'Public Sub GetTypeInfoVB( _
+    '    ByVal iTInfo As Long, _
+    '    ByVal lcid As Long, _
+    '    ByVal ppTInfo As LongPtr _
+    ')
+    '    'HRESULT GetTypeInfo(
+    '    '  [in]  UINT      iTInfo,
+    '    '  [in]  LCID      lcid,
+    '    '  [out] ITypeInfo **ppTInfo
+    '    ');
+    'End Sub
+
+    Sub InvokeVB( _
+        ByVal dispIDMember As Long, _
+        ByVal riid As LongPtr, _
+        ByVal lcid As Long, _
+        ByVal wFlags As Integer, _
+        ByVal pDispParams As LongPtr, _
+        ByVal pVarResult As LongPtr, _
+        ByVal pExcepInfo As LongPtr, _
+        ByVal puArgErr As LongPtr _
+    )
+        'HRESULT Invoke(
+        '  [in]      DISPID     dispIdMember,
+        '  [in]      REFIID     riid,
+        '  [in]      LCID       lcid,
+        '  [in]      WORD       wFlags,
+        '  [in, out] DISPPARAMS *pDispParams,
+        '  [out]     VARIANT    *pVarResult,
+        '  [out]     EXCEPINFO  *pExcepInfo,
+        '  [out] UINT * puArgErr
+        ');
+
+End Interface
+[ InterfaceId ("00020400-0000-0000-C000-000000000046") ]
+Interface IDispatch Extends IUnknown
+    ' [
+    '   object,
+    '   uuid(00020400-0000-0000-C000-000000000046),
+    '   pointer_default(unique)
+    ' ]
+    ' Interface IDispatch: IUnknown
+    ' {
+    '   typedef [unique] IDispatch *LPDISPATCH;
+
+    '   Const DISPID DISPID_UNKNOWN     = -1;
+    '   Const DISPID DISPID_VALUE       =  0;
+    '   Const DISPID DISPID_PROPERTYPUT = -3;
+    '   Const DISPID DISPID_NEWENUM     = -4;
+    '   Const DISPID DISPID_EVALUATE    = -5;
+    '   Const DISPID DISPID_CONSTRUCTOR = -6;
+    '   Const DISPID DISPID_DESTRUCTOR  = -7;
+    '   Const DISPID DISPID_COLLECT     = -8;
+
+    '   HRESULT GetTypeInfoCount(
+    '     [ out] UINT *pctinfo);
+
+    '   HRESULT GetTypeInfo(
+    '     [ in] UINT iTInfo,
+    '     [ in] LCID lcid,
+    '     [ out] ITypeInfo **ppTInfo);
+
+    '   HRESULT GetIDsOfNames(
+    '     [ in] REFIID riid,
+    '     [ in, size_is(cNames)] LPOLESTR *rgszNames,
+    '     [ in] UINT cNames,
+    '     [ in] LCID lcid,
+    '     [ out, size_is(cNames)] DISPID *rgDispId);
+
+    '   [ local]
+    '   HRESULT Invoke(
+    '     [ in] DISPID dispIdMember,
+    '     [ in] REFIID riid,
+    '     [ in] LCID lcid,
+    '     [ in] WORD wFlags,
+    '     [ in, out] DISPPARAMS *pDispParams,
+    '     [ out] VARIANT *pVarResult,
+    '     [ out] EXCEPINFO *pExcepInfo,
+    '     [ out] UINT *puArgErr);
+
+    '   [ call_as(Invoke)]
+    '   HRESULT RemoteInvoke(
+    '     [ in] DISPID dispIdMember,
+    '     [ in] REFIID riid,
+    '     [ in] LCID lcid,
+    '     [ in] DWORD dwFlags,
+    '     [ in] DISPPARAMS *pDispParams,
+    '     [ out] VARIANT *pVarResult,
+    '     [ out] EXCEPINFO *pExcepInfo,
+    '     [ out] UINT *pArgErr,
+    '     [ in] UINT cVarRef,
+    '     [ in, size_is(cVarRef)] UINT *rgVarRefIdx,
+    '     [ in, out, size_is(cVarRef)] VARIANTARG *rgVarRef);
+    ' }
+    Sub GetTypeInfoCount(ByRef outTICount As Long)
+    Sub GetTypeInfo( _ 
+        ByVal tiIndex As Long, _
+        ByVal lcid As Long, _
+        ByRef outpITypeInfo As LongPtr)
+    Sub GetIDsOfNames( _
+        ByVal riid As LongPtr, _
+        ByVal namesArray As LongPtr, _
+        ByVal cNames As Long, _
+        ByVal lcid As Long, _
+        ByVal dispidArray As LongPtr)
+    Sub Invoke( _
+        ByVal dispIDMember As Long, _
+        ByVal riid As LongPtr, _
+        ByVal lcid As Long, _
+        ByVal wFlags As Integer, _
+        ByVal pDispParams As LongPtr, _
+        ByVal pVarResult As LongPtr, _
+        ByVal pExcepInfo As LongPtr, _
+        ByVal puArgErr As LongPtr _
+        )
+End Interface
