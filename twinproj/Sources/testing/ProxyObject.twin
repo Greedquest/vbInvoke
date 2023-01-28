@@ -19,15 +19,15 @@ Private Class SimplestSwap
         ByVal lcid As Long, _
         ByRef outpITypeInfo As LongPtr)
         Logger.Log DebugLevel, printf("IDIspatch_GetTypeInfo {}", tiIndex)
-        on error resume next
+        On Error Resume Next
         BaseAccessor.GetTypeInfo tiIndex, lcid, outpITypeInfo
-        Err.ReturnHResult = Err.LastHResult 'maybe not needed...   
+        Err.ReturnHResult = Err.LastHResult 'This is needed if On Error Resume Next debugging
     End Sub
     
     Private Sub IDispatch_GetIDsOfNames(ByVal riid As LongPtr, ByVal namesArray As LongPtr, ByVal cNames As Long, ByVal lcid As Long, ByVal dispidArray As LongPtr)
         Logger.Log TraceLevel, "IDispatchVB_GetIDsOfNamesVB"
         BaseAccessor.GetIDsOfNames(riid, namesArray, cNames, lcid, dispidArray)
-        Err.ReturnHResult = Err.LastHResult 'maybe not needed...  
+        Err.ReturnHResult = Err.LastHResult 'REVIEW maybe not needed...  
     End Sub
     
     Private Sub IDIspatch_Invoke(ByVal dispIDMember As Long, ByVal riid As LongPtr, ByVal lcid As Long, ByVal wFlags As Integer, ByVal pDispParams As LongPtr, ByVal pVarResult As LongPtr, ByVal pExcepInfo As LongPtr, ByVal puArgErr As LongPtr)
