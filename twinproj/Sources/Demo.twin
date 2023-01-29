@@ -47,11 +47,11 @@ End Class
 
 [ AppObject ]
 Public Class TypeLibEntryPoints
-    Public Function GetStandardModuleAccessor(ByVal moduleName As Variant, ByVal proj As VBProject) As Object
+    Public Function GetStandardModuleAccessor(ByVal moduleName As String, ByVal proj As VBProject) As Object
     	Return DllEntryPoints.GetStandardModuleAccessor(moduleName, proj)
     End Function
     
-    Public Function GetExtendedModuleAccessor(ByVal moduleName As Variant, ByVal proj As VBProject, ByRef outPrivateTI As ITypeInfo) As Object
+    Public Function GetExtendedModuleAccessor(ByVal moduleName As String, ByVal proj As VBProject, Optional ByRef outPrivateTI As ITypeInfo) As Object
     	Return DllEntryPoints.GetExtendedModuleAccessor(moduleName, proj, outPrivateTI)
     End Function
 End Class
@@ -89,9 +89,9 @@ Module DllEntryPoints
         
         'This tapes the full ITypeInfo to the StdModuleAccessor, allowing for IDispatch to handle the
         ' calls to both public and private methods
-        Dim swapClassInfo As Object = New SwapClassEX(baseAccessor, outPrivateTI)
+        Dim swapClass As SwapClassEX = New SwapClassEX(baseAccessor, outPrivateTI)
         Logger.Log TraceLevel, "Created swap class successfully"
-        Return swapClassInfo
+        Return swapClass
     End Function
 End Module
 
