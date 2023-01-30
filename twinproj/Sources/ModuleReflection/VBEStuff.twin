@@ -52,36 +52,32 @@ Private Class VBETypeLibIterator
 
     Public Sub ResetIteration()
         Logger.Log TraceLevel, "Resetting iteration of typelib iterator"
+        Logger.Log DebugLevel, printf("Before Reset: {}<-{}->{}", this.currentTL.Prev, this.pCurrentTL, this.currentTL.Next)
         Do While this.currentTL.Prev <> 0
-            Logger.Log DebugLevel, printf("this.currentTL.Prev={}", this.currentTL.Prev)
+            Logger.Log DebugLevel, printf("Moving to this.currentTL.Prev={}", this.currentTL.Prev)
             currentTL = this.currentTL.Prev
+            Logger.Log DebugLevel, printf("Resetting: {}<-{}->{}", this.currentTL.Prev, this.pCurrentTL, this.currentTL.Next)
         Loop
     End Sub
 
-    Private Function NextTypeLib() As LongPtr
-        If this.currentTL.Next = 0 Then Err.Raise 5, Description:="We've reached the end of the line"
-        NextTypeLib = this.currentTL.Next
-        currentTL = this.currentTL.Next 'move the iterator along
-    End Function
+    Private Sub MoveNext()
+        Logger.Log DebugLevel, printf("About to Move: {}<-{}->{}", this.currentTL.Prev, this.pCurrentTL, this.currentTL.Next)
+        If this.pCurrentTL = 0 Then Err.Raise 5, Description:="We've reached the end of the line"
+    	currentTL = this.currentTL.Next
+        Logger.Log DebugLevel, printf("After Move: {}<-{}->{}", this.currentTL.Prev, this.pCurrentTL, this.currentTL.Next)
+    End Sub
 
     [ Description ("Gets type library com objects from list") ]
     Public Function TryGetNext(ByRef outTypeLib As TypeLibInfo) As Boolean
         On Error GoTo cleanFail
-        Dim tlPtr As LongPtr = NextTypeLib
+        Dim tlPtr As LongPtr = this.pCurrentTL
+        MoveNext
         Set outTypeLib = New TypeLibInfo(tlPtr) 'no worries about query interface for ITypeLib
         Return True
 
     cleanFail:
         Set outTypeLib = Nothing
         Return False
-    End Function
-    
-
-    '@Description("Returns the raw ITypeLib interface; this is because TLI.TypeLibInfo is a slightly more restricted view than the pointer here and hides private members")
-    Public Function tryGetCurrentRawITypeLibPtr(ByRef outITypeLib As LongPtr) As Boolean
-        If this.pCurrentTL <= 0 Then Exit Function
-        outITypeLib = this.pCurrentTL
-        tryGetCurrentRawITypeLibPtr = True
     End Function
 End Class
 
@@ -103,7 +99,7 @@ Module VBETypeLib
         vTable2 As LongPtr
         vTable3 As LongPtr
         Prev As LongPtr
-        '@Ignore KeywordsUsedAsMember: Looks nice, sorry ThunderFrame
+        '@Ignore KeywordsUsedAsMember: makes it clearer despite what RD wants
         Next As LongPtr
     End Type
       
@@ -134,12 +130,13 @@ Module VBETypeLib
 
         Logger.Log TraceLevel, "Try iterate over typelib"
         Do While typeLibPtrs.TryGetNext(outTypeLib)
-            Dim pExtendedTypeLib As LongPtr
-            Assert typeLibPtrs.tryGetCurrentRawITypeLibPtr(pExtendedTypeLib), "Current tl pointer is not valid"
-            Assert pExtendedTypeLib = ObjPtr(outTypeLib.ITypeLib), "TypeLib pointer has changed"
             Dim tlName As String = outTypeLib.name
-            Assert tlName <> "", "Error when reading typeLib Name, see DebugView for more details"
-            LogManager.Log InfoLevel, printf("Discovered: {}@{}", tlName, pExtendedTypeLib)
+            If tlName = "" Then
+                tlName = "[Immediate]"
+                LogManager.Log DebugLevel, printf("outTypeLib.name was empty, continuing assuming it was immediate window")
+            End If
+            LogManager.Log InfoLevel, printf("Discovered Project: '{}'@{}", tlName, ObjPtr(outTypeLib.ITypeLib))
+                  
             If tlName = projectName Then
                 'we have found the project typelib, check for the correct module within it
                 Dim moduleTI As ITypeInfo
@@ -148,11 +145,11 @@ Module VBETypeLib
                     found = True
                     Exit Do
                 Else
-                    Err.Raise vbObjectError + 5, Description:="Module with name '" & moduleName & "' not found in project " & projectName
+                    Err.Raise vbObjectError + 5, Description:=printf("Module with name '{}' not found in project '{}'", moduleName, projectName)
                 End If
             End If
         Loop
-        If Not found Then Err.Raise vbObjectError + 5, Description:=printf("No project found with that name {}", projectName)
+        If Not found Then Err.Raise vbObjectError + 5, Description:=printf("No project found named '{}'", projectName)
 
         'Cast to IVBEComponent Guid("DDD557E1-D96F-11CD-9570-00AA0051E5D4")
         '   In RD this is done via Aggregation
