@@ -17,3 +17,7 @@ End Property
 Public Property Let val(ByVal rhs As Double)
     Debug.Print "Ignoring val="; rhs
 End Property
+
+Private Property Get lemon() As String
+    lemon = String$(val * 10, "l")
+End Property

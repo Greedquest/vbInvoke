@@ -7,7 +7,7 @@ Private test_val As Double
 Public Sub testCallingPrivateMethod()
     Dim exampleMod As Object
     Set exampleMod = GetFancyAccessor("ExampleModule", ThisWorkbook.VBProject.Name)
-    Debug.Assert exampleMod.Foo(2) = "HelloWorld!!"
+    Debug.Assert exampleMod.foo(2) = "HelloWorld!!"
 End Sub
 
 Public Sub testCallingErrorMethod()

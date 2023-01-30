@@ -18,6 +18,7 @@ Module Logging
                 mask = Replace$(mask, "{}", escapedToken, Count:=1)
             
             Else
+        
                 'use indexed mode {i}
                 mask = Replace$(mask, "{" & i & "}", escapedToken)
             
@@ -137,7 +138,8 @@ Class SwapClassEX
 
     Private Sub IDispatch_Invoke(ByVal dispIDMember As Long, ByVal riid As LongPtr, ByVal lcid As Long, ByVal wFlags As Integer, ByVal pDispParams As LongPtr, ByVal pVarResult As LongPtr, ByVal pExcepInfo As LongPtr, ByVal puArgErr As LongPtr)
         Logger.Log DebugLevel, printf("IDispatchVB_InvokeVB dispid={}", dispIDMember)
-        BaseAccessor.Invoke(dispIDMember, _
+        Dim accessor As IDispatch = If(dispIDMember = -4, funcs, BaseAccessor)
+        accessor.Invoke(dispIDMember, _
             riid, lcid, wFlags, _
             pDispParams, _
             pVarResult, pExcepInfo, puArgErr)

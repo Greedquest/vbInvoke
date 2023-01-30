@@ -8,7 +8,7 @@ Private Declare PtrSafe Function GetModuleHandle Lib "kernel32" Alias "GetModule
 
 Public Const DLLNAME As String = "vbInvoke_win64.dll"
 Public Const FILEPATH As String = "C:\GitHub\vbInvoke\Build\" & DLLNAME
-Public Const TEMP_PATH As String = "C:\GitHub\vbInvoke\Build\Temp\" & DLLNAME
+Public Const TEMP_PATH As String = "C:\GitHub\vbInvoke\Build\.active\" & DLLNAME
 
 Public Sub RefreshDll()
     Dim existingHandle As LongPtr
