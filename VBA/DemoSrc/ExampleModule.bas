@@ -2,8 +2,8 @@ Attribute VB_Name = "ExampleModule"
 '@Folder("DemoProject")
 Option Explicit
 
-Private Function Foo(ByVal bar As Long) As String
-    Foo = "HelloWorld" & String(bar, "!")
+Private Function foo(ByVal bar As Long) As String
+    foo = "HelloWorld" & String(bar, "!")
 End Function
 
 Public Sub Baz()

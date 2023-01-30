@@ -16,12 +16,9 @@ Module Logging
             If InStr(1, mask, "{}") <> 0 Then
                 'use positional mode {}
                 mask = Replace$(mask, "{}", escapedToken, Count:=1)
-            
             Else
-        
                 'use indexed mode {i}
                 mask = Replace$(mask, "{" & i & "}", escapedToken)
-            
             End If
         Next
         mask = Replace$(mask, "\}", "}")
