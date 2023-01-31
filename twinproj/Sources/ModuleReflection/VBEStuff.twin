@@ -54,7 +54,6 @@ Private Class VBETypeLibIterator
         Logger.Log TraceLevel, "Resetting iteration of typelib iterator"
         Logger.Log DebugLevel, printf("Before Reset: {}<-{}->{}", this.currentTL.Prev, this.pCurrentTL, this.currentTL.Next)
         Do While this.currentTL.Prev <> 0
-            Logger.Log DebugLevel, printf("Moving to this.currentTL.Prev={}", this.currentTL.Prev)
             currentTL = this.currentTL.Prev
             Logger.Log DebugLevel, printf("Resetting: {}<-{}->{}", this.currentTL.Prev, this.pCurrentTL, this.currentTL.Next)
         Loop
@@ -63,7 +62,8 @@ Private Class VBETypeLibIterator
     Private Sub MoveNext()
         Logger.Log DebugLevel, printf("About to Move: {}<-{}->{}", this.currentTL.Prev, this.pCurrentTL, this.currentTL.Next)
         If this.pCurrentTL = 0 Then Err.Raise 5, Description:="We've reached the end of the line"
-    	currentTL = this.currentTL.Next
+    	currentTL = this.pCurrentTL 'dereference to fill struct
+        this.pCurrentTL = this.currentTL.Next 'we will pick this up as zero next time around
         Logger.Log DebugLevel, printf("After Move: {}<-{}->{}", this.currentTL.Prev, this.pCurrentTL, this.currentTL.Next)
     End Sub
 
