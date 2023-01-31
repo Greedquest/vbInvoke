@@ -1,4 +1,4 @@
-# vbInvoke [![Code Review](http://www.zomis.net/codereview/shield/?qid=274532)](http://codereview.stackexchange.com/q/274532/146810)
+# vbInvoke [![Code Review](http://www.zomis.net/codereview/shield/?qid=274532&mode=score)](http://codereview.stackexchange.com/q/274532/146810)
 
 Library for calling methods in VBA modules with 3 key benefits
   - Host agnostic (unlike `Application.Run`)
