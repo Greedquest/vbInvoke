@@ -43,18 +43,18 @@ Public Sub TestProxyHardcode()
     Set baseObject = New Collection
     Debug.Print "TypeName(baseObject)="; TypeName(baseObject)
     baseObject.Add "foo"
-            
+
     'test we can use any IDispatch interface
     Dim proxy As stdole.IUnknown
     Set proxy = makeProxy(baseObject)
     Debug.Print "TypeName(proxy)="; TypeName(proxy)
     'should call our swapped function!
-    
+
     Dim proxyObj As Object
     Set proxyObj = proxy
     Debug.Print "TypeName(proxyObj)="; TypeName(proxyObj)
     proxyObj.Add "bar"
-      
+
     Dim item As Variant
     For Each item In baseObject
         Debug.Print "Got a " & item
@@ -68,7 +68,7 @@ Sub VBInvokeTHingy()
     foo.GetDocumentation 1610612739, outName
     Debug.Print outName
     Debug.Print a.foo(11)
-    
+
 End Sub
 
 Sub VBInvokeTHingyOptionalArg()

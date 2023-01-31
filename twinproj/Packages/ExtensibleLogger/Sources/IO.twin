@@ -7,7 +7,7 @@ Module WinAPI
     Public Sub DebugOutput(ByVal Data As String, _
         Optional ByVal CrLf As Boolean = True)
 
-        ' Output to the ether... Someone may be listening... 
+        ' Output to the ether... Someone may be listening...
         Debug.Print Data ;
         OutputDebugString Data
         If CrLf Then
@@ -104,7 +104,7 @@ Class TextWriter
     Private Function CanWrite(ByVal fileName As String, ByRef outFileNumber As Long) As Boolean
         Dim result As Boolean
         Dim fileNumber As Long
-        
+
         If quickWriteFile <> 0 And fileName = vbNullString Then
             fileNumber = quickWriteFile
             CanWrite = True
@@ -133,7 +133,7 @@ Class TextWriter
             'End Patch
             If fileNumber = quickWriteFile Then quickWriteFile = 0
         End If
-        
+
         'NOTE: Patch
         '    If openedFiles.Count = 1 Then quickWriteFile = openedFiles.Values.First
         If openedFiles.Count = 1 Then quickWriteFile = openedFiles.Items(0)
@@ -162,7 +162,7 @@ Class TextWriter
 
         If quickWriteFile <> 0 And fileName = vbNullString Then
             result = quickWriteFile
-            
+
             'NOTE: Patch
             'ElseIf Not openedFiles.TryGetValue(fileName, result) Then
         ElseIf Not Patches.TryGetValue(fileName, result, openedFiles) Then

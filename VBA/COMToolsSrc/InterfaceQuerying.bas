@@ -32,17 +32,17 @@ Public Function QueryInterface(ByRef ClassInstance As IUnknown, ByVal InterfaceI
     Dim ptrVarValues(1) As LongPtr
     ptrVarValues(0) = VarPtr(valueWrapper0)
     ptrVarValues(1) = VarPtr(valueWrapper1)
-    
+
     '@Ignore IntegerDataType: Integer is correct here
     Dim varTypes(1) As Integer
     varTypes(0) = VbVarType.vbLong
     varTypes(1) = VarType(retVal)
-    
+
     Const paramCount As Long = 2
-    
+
     Dim objAddr As LongPtr
     objAddr = ObjPtr(ClassInstance)
-    
+
     '@Ignore VariableNotAssigned: False Positive
     Dim apiRetVal As Variant
     Dim hresult As hResultCode
@@ -51,9 +51,9 @@ Public Function QueryInterface(ByRef ClassInstance As IUnknown, ByVal InterfaceI
 
     If hresult = S_OK Then
         hresult = apiRetVal
-        
+
         If hresult = S_OK Then
-        
+
             QueryInterface = retVal
         Else
             Err.Raise hresult, "QueryInterface", "Failed to cast to interface pointer. IUnknown::QueryInterface HRESULT: 0x" & Hex$(hresult)
@@ -61,7 +61,7 @@ Public Function QueryInterface(ByRef ClassInstance As IUnknown, ByVal InterfaceI
     Else
         Err.Raise hresult, "DispCallFunc", "Failed to cast to interface pointer. DispCallFunc HRESULT: 0x" & Hex$(hresult)
     End If
-        
+
 End Function
 
 '@EntryPoint

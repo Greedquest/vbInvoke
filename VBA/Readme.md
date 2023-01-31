@@ -11,7 +11,7 @@ The [VBAHack Demo.xlsm](./VBAHack%20Demo.xlsm?raw=True) contains a demo for the 
 It requires references to the files below:
 
 ### These are the References
- 
+
  - [MemoryTools.xlam](./MemoryTools.xlam?raw=True) - This is an addin which wraps [cristianbuse](https://github.com/cristianbuse)/**[VBA-MemoryTools](https://github.com/cristianbuse/VBA-MemoryTools)** which I'm using to read/write memory e.g. `MemByte(address As LongPtr) = value` because it is both performant and has a really nice API design in my opinion.
 
  - [COMTools.xlam](./COMTools.xlam?raw=True)  - This is an addin I wrote myself for this project and contains all the types and library functions to make working with COM possible in VBA. In particular:

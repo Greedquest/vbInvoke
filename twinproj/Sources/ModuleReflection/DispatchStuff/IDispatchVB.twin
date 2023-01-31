@@ -4,7 +4,7 @@ Module IDispatchVBTypes
         GetIDsOfNamesVB As LongPtr
         InvokeVB As LongPtr
     End Type: Public IDispatchVBVTable As IDispatchVBVTable
-    
+
     Public Property Get IDispatchVBVTableOffset(ByRef member As LongPtr) As LongPtr
         IDispatchVBVTableOffset = VarPtr(member) - VarPtr(IDispatchVBVTable)
     End Property
@@ -126,7 +126,7 @@ Interface IDispatch Extends IUnknown
     '     [ in, out, size_is(cVarRef)] VARIANTARG *rgVarRef);
     ' }
     Sub GetTypeInfoCount(ByRef outTICount As Long)
-    Sub GetTypeInfo( _ 
+    Sub GetTypeInfo( _
         ByVal tiIndex As Long, _
         ByVal lcid As Long, _
         ByRef outpITypeInfo As LongPtr)

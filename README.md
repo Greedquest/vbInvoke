@@ -4,8 +4,8 @@ Library for calling methods in VBA modules with 3 key benefits
   - Host agnostic (unlike `Application.Run`)
   - Works with Standard .bas Modules (unlike `CallByName` that calls classes)
   - Can call public _or_ private methods
-  
-  
+
+
 Under the hood it uses the same technique as [Rubberduck's](https://github.com/rubberduck-vba/Rubberduck) test execution engine to access the addresses of the public and private methods, ported from C# to VBA to twinBASIC (thanks RD team & Wayne for all the help). That foundation is then supplemented with a new technique to make calling them from VBA or tB much more natural. Click on the code review shield at top of post for more detailed code/technique walkthrough (written before tB port, but the concepts are the same)
 
 ## Quickstart

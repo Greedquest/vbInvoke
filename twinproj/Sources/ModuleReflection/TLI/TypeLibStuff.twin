@@ -77,7 +77,7 @@ Interface ITypeLib Extends IUnknown
     Sub DummyGetTypeInfoOfGuid()
     Sub DummyGetLibAttr()
     Sub GetTypeComp()
-    
+
 '        virtual /* [local] */ HRESULT STDMETHODCALLTYPE GetDocumentation(
 '            /* [in] */ INT index,
 '            /* [annotation][out] */
@@ -151,7 +151,7 @@ End Interface
 
 [ InterfaceId ("00020401-0000-0000-C000-000000000046") ]
 Interface ITypeInfo Extends IUnknown
-    
+
     'HRESULT  GetTypeAttr([out] TYPEATTR **ppTypeAttr )
     Sub GetTypeAttr(ByRef outpTypeAttr As LongPtr)
     Sub DummyGetTypeComp()
@@ -209,7 +209,7 @@ Module TypeLibHelper
         Logger.Log DebugLevel, "GET PROJ NAME for " & ObjPtr(ITypeLib)
         getProjName = getDocumentation(ITypeLib, KnownMemberIDs.MEMBERID_NIL)
     End Function
-    
+
     Private Function getDocumentation(ByVal ITypeLib As ITypeLib, ByVal memid As DISPID) As String
         ITypeLib.GetDocumentation memid, getDocumentation
     End Function
@@ -247,7 +247,7 @@ Class TypeLibInfo
         On Error GoTo logErr
         this.typeInfos.Find name, outTI
         Return True
-        
+
         logErr:
         Logger.Log ErrorLevel, printf("Find raised error {}: {}", Err.Number, Err.Description)
         Return False

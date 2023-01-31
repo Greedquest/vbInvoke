@@ -11,7 +11,7 @@ Public Enum CALLINGCONVENTION_ENUM
     ' http://msdn.microsoft.com/en-us/library/system.runtime.interopservices.comtypes.callconv%28v=vs.110%29.aspx
     CC_FASTCALL = 0&
     CC_CDECL
-    
+
     CC_PASCAL
     CC_MACPASCAL
     CC_STDCALL                                   ' typical windows APIs
@@ -61,7 +61,7 @@ Public Function CallFunction(ByVal InterfacePointer As LongPtr, ByVal VTableByte
     '@Ignore DefaultMemberRequired: apparently not since this code works fine
     vParams() = FunctionParameters()             ' copy passed parameters, if any
     CallFunction = DispCallFunctionWrapper(InterfacePointer, VTableByteOffsetOrFunction, FunctionReturnType, CallConvention, vParams)
-                             
+
 End Function
 
 Public Function CallVBAFuncPtr(ByVal FuncPtr As LongPtr, _
@@ -86,7 +86,7 @@ Private Function DispCallFunctionWrapper(ByVal InterfacePointer As LongPtr, ByVa
                              ByVal FunctionReturnType As CALLRETURNTUYPE_ENUM, _
                              ByVal CallConvention As CALLINGCONVENTION_ENUM, _
                              ByRef vParams() As Variant) As Variant
-                            
+
     ' Used to call active-x or COM objects, not standard dlls
 
     ' Return value. Will be a variant containing a value of FunctionReturnType
@@ -111,10 +111,10 @@ Private Function DispCallFunctionWrapper(ByVal InterfacePointer As LongPtr, ByVa
     If VTableByteOffsetOrFunction < 0& Or ((InterfacePointer = 0) And (VTableByteOffsetOrFunction = 0)) Then Exit Function
     If Not (FunctionReturnType And &HFFFF0000) = 0& Then Exit Function ' can only be 4 bytes
 
-    
+
     Dim pCount As Long
     pCount = Abs(UBound(vParams) - LBound(vParams) + 1&)
-    
+
     Dim vParamPtr() As LongPtr
     Dim vParamType() As Integer
     If pCount = 0& Then                          ' no return value (sub vs function)
@@ -134,7 +134,7 @@ Private Function DispCallFunctionWrapper(ByVal InterfacePointer As LongPtr, ByVa
     Dim hresult As hResultCode
     hresult = DispCallFunc(InterfacePointer, VTableByteOffsetOrFunction, CallConvention, FunctionReturnType, _
                           pCount, vParamType(0), vParamPtr(0), vRtn)
-        
+
     If hresult = S_OK Then
         DispCallFunctionWrapper = vRtn                      ' return result
     Else

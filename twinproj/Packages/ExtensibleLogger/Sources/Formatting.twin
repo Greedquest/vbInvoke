@@ -7,7 +7,7 @@ Class DefaultLogMessageFormatter
     Implements ILogMessageFormatter
 
     Private Function ILogMessageFormatter_FormatMessage(ByVal level As LogLevel, ByVal loggerName As String, ByVal message As String) As String
-        
+
         'ILogMessageFormatter_FormatMessage = Framework.Strings.Format("{0:s}\t{1}\t[{2}]\t{3}", Now, loggerName, FormatLogLevel(level), message)
         ILogMessageFormatter_FormatMessage = Fmt.StringFormat("{0:s}\t{1}\t[{2}]\t{3}", Now, loggerName, FormatLogLevel(level), message)
     End Function

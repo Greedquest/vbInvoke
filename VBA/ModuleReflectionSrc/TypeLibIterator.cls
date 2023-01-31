@@ -47,10 +47,10 @@ Attribute TryGetNext.VB_Description = "Gets type library com objects from list"
     tlPtr = NextTypeLib
     Set outTypeLib = TLI.TypeLibInfoFromITypeLib(ObjectFromObjPtr(tlPtr))
     TryGetNext = True
-    
+
 cleanExit:
     Exit Function
-    
+
 cleanFail:
     TryGetNext = False
     Set outTypeLib = Nothing

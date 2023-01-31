@@ -28,7 +28,7 @@ Private Const ITYP_GetDocument As Long = 48 * vTblOffsetFac_32_64
 
 Private Const ITYP_ReleaseTypeAttr As Long = 76 * vTblOffsetFac_32_64
 Private Const ITYP_ReleaseFuncDesc As Long = 80 * vTblOffsetFac_32_64
-    
+
 Public Type PropertyInfo
     name As String
     Value As Variant
@@ -71,7 +71,7 @@ Public Function IUnkQueryInterface(ByVal TheObject As IUnknown, ByRef outObj As 
     Dim aGUID(0 To 11) As Long
     aGUID(0) = &H20400: aGUID(2) = &HC0&: aGUID(3) = &H46000000
     IUnkQueryInterface = CallFunction_COM(ObjPtr(TheObject), IUNK_QueryInterface, vbLong, CC_STDCALL, VarPtr(aGUID(0)), VarPtr(outObj))
-    
+
 End Function
 
 Private Function GetObjectFunctions(ByVal TheObject As Object, Optional ByVal FuncType As VbCallType) As Collection
@@ -80,24 +80,24 @@ Private Function GetObjectFunctions(ByVal TheObject As Object, Optional ByVal Fu
     Dim tFUNCDESC As FUNCDESC
 
     Dim aGUID(0 To 11) As Long, lFuncsCount As Long
- 
+
     #If Win64 Then
         Dim aTYPEATTR() As LongLong, aFUNCDESC() As LongLong, farptr As LongLong
     #Else
         Dim aTYPEATTR() As Long, aFUNCDESC() As Long, farptr As Long
     #End If
- 
+
     Dim ITypeInfo As IUnknown
     Dim IDispatch As IUnknown
     Dim sName As String, oCol As New Collection
- 
+
     aGUID(0) = &H20400: aGUID(2) = &HC0&: aGUID(3) = &H46000000
     CallFunction_COM ObjPtr(TheObject), IUNK_QueryInterface, vbLong, CC_STDCALL, VarPtr(aGUID(0)), VarPtr(IDispatch)
     If IDispatch Is Nothing Then MsgBox "error":   Exit Function
 
     CallFunction_COM ObjPtr(IDispatch), IDSP_GetTypeInfo, vbLong, CC_STDCALL, 0&, 0&, VarPtr(ITypeInfo)
     If ITypeInfo Is Nothing Then MsgBox "error": Exit Function
- 
+
     CallFunction_COM ObjPtr(ITypeInfo), ITYP_GetTypeAttr, vbLong, CC_STDCALL, VarPtr(farptr)
     If farptr = 0& Then MsgBox "error": Exit Function
 
@@ -105,7 +105,7 @@ Private Function GetObjectFunctions(ByVal TheObject As Object, Optional ByVal Fu
     ReDim aTYPEATTR(LenB(tTYPEATTR))
     CopyMemory ByVal VarPtr(aTYPEATTR(0)), tTYPEATTR, UBound(aTYPEATTR)
     CallFunction_COM ObjPtr(ITypeInfo), ITYP_ReleaseTypeAttr, vbEmpty, CC_STDCALL, farptr
- 
+
     For lFuncsCount = 0 To tTYPEATTR.cFuncs - 1
         CallFunction_COM ObjPtr(ITypeInfo), ITYP_GetFuncDesc, vbLong, CC_STDCALL, lFuncsCount, VarPtr(farptr)
         If farptr = 0 Then MsgBox "error": Exit For
@@ -129,7 +129,7 @@ Private Function GetObjectFunctions(ByVal TheObject As Object, Optional ByVal Fu
         End With
         sName = vbNullString
     Next
- 
+
     Set GetObjectFunctions = oCol
 
 End Function

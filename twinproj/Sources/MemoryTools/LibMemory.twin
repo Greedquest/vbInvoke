@@ -4,12 +4,12 @@ Module MemoryProtection
         PAGE_READONLY = &H2
         RESET_TO_PREVIOUS = -1
     End Enum
-    
+
     Private Enum BOOL
         API_FALSE = 0
         'Use NOT (result = API_FALSE) for API_TRUE, as TRUE is just non-zero
     End Enum
-    
+
     Private Declare PtrSafe Function VirtualProtect Lib "kernel32" (ByRef location As Any, ByVal numberOfBytes As Long, ByVal newProtectionFlags As VirtualProtectFlags, ByVal lpOldProtectionFlags As LongPtr) As BOOL
 
     Public Static Function ToggleMemoryProtection(ByVal address As LongPtr, ByVal numberOfBytes As Long, Optional ByVal newMemoryFlag As VirtualProtectFlags = RESET_TO_PREVIOUS) As Boolean

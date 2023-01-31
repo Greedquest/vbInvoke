@@ -65,11 +65,11 @@ Private Sub InitNumericSpecifiers()
     myDummy = ObjPtr(HexSFI)
     myDummy = ObjPtr(RoundTripSFI)
     myDummy = ObjPtr(NumericPaddingSFI)
-    
+
     Set this.NumericSpecifiers = New Collection
-    
+
     With this.NumericSpecifiers
-    
+
         .Add CurrencySFI
         .Add DecimalSFI
         .Add GeneralNumericSFI
@@ -79,7 +79,7 @@ Private Sub InitNumericSpecifiers()
         .Add HexSFI
         .Add RoundTripSFI
         .Add NumericPaddingSFI
-    
+
 End With
 
 End Sub
@@ -116,7 +116,7 @@ Private Function GetFormatSpecifiers(ByVal format_string As String, valuesCount 
 
     Dim csvIndices As String
     csvIndices = ","
-    
+
     Dim uniqueCount As Long
     Dim largestIndex As Long
 
@@ -178,16 +178,16 @@ Public Function StringFormat(format_string As String, values() As Variant) As St
     'when format_string starts with "@", escapes are not replaced
     '(string is treated as a literal string with placeholders)
     useLiteral = StringStartsWith("@", result)
-    
+
     If useLiteral Then
         'remove the "@" literal specifier from the result string
         result = Right$(result, Len(result) - 1)
-    
+
     ElseIf StringContains(result, "\\") Then
         'replace escaped backslashes with 'ESC' character [Chr$(27)]
         'to optimize escape sequences evaluation:
         result = Replace(result, "\\", Chr$(27))
-        
+
     End If
 
     Dim formattedValue As String
@@ -207,7 +207,7 @@ Public Function StringFormat(format_string As String, values() As Variant) As St
                     formattedValue = identifier.GetFormattedValue(values(specifier.Index), specifier)
 
                 End If
-                
+
             Next
 
         ElseIf TypeName(values(specifier.Index)) = "Date" Then
@@ -217,9 +217,9 @@ Public Function StringFormat(format_string As String, values() As Variant) As St
                     formattedValue = identifier.GetFormattedValue(values(specifier.Index), specifier)
 
                 End If
-                
+
             Next
-            
+
         End If
 
         If Not identifierFound Then Err.Raise ERR_FORMAT_EXCEPTION, ERR_SOURCE, ERR_MSG_INVALID_FORMAT_STRING

@@ -2,19 +2,19 @@
 Private Class SimplestSwap
     'TODO don't use IDispatchVB because then the pointer to IDispatch is wrong and we cannot overload root interface
     'NOTE if the consumer doesn't know any other interfaces of this class, they cannot leave the Object we provide
-    'Except casting to IUnknown and back. 
-    
+    'Except casting to IUnknown and back.
+
 	'Implements IDispatchVB
     Private ReadOnly BaseAccessor As IDispatch
-    
+
     'DO NOT REORDER these 4 functions. Do NOT add new properties above them. This will alter VTable offsets
     Private Sub IDispatch_GetTypeInfoCount(ByRef outTICount As Long)
         Logger.Log TraceLevel, "IDispatchVB_GetIDsOfNamesVB"
         BaseAccessor.GetTypeInfoCount outTICount
         Err.ReturnHResult = Err.LastHResult
     End Sub
-    
-    Private Sub IDispatch_GetTypeInfo( _ 
+
+    Private Sub IDispatch_GetTypeInfo( _
         ByVal tiIndex As Long, _
         ByVal lcid As Long, _
         ByRef outpITypeInfo As LongPtr)
@@ -23,35 +23,35 @@ Private Class SimplestSwap
         BaseAccessor.GetTypeInfo tiIndex, lcid, outpITypeInfo
         Err.ReturnHResult = Err.LastHResult 'This is needed if On Error Resume Next debugging
     End Sub
-    
+
     Private Sub IDispatch_GetIDsOfNames(ByVal riid As LongPtr, ByVal namesArray As LongPtr, ByVal cNames As Long, ByVal lcid As Long, ByVal dispidArray As LongPtr)
         Logger.Log TraceLevel, "IDispatchVB_GetIDsOfNamesVB"
         BaseAccessor.GetIDsOfNames(riid, namesArray, cNames, lcid, dispidArray)
-        Err.ReturnHResult = Err.LastHResult 'REVIEW maybe not needed...  
+        Err.ReturnHResult = Err.LastHResult 'REVIEW maybe not needed...
     End Sub
-    
+
     Private Sub IDIspatch_Invoke(ByVal dispIDMember As Long, ByVal riid As LongPtr, ByVal lcid As Long, ByVal wFlags As Integer, ByVal pDispParams As LongPtr, ByVal pVarResult As LongPtr, ByVal pExcepInfo As LongPtr, ByVal puArgErr As LongPtr)
         Logger.Log DebugLevel, printf("IDispatchVB_InvokeVB dispid={}", dispIDMember)
         BaseAccessor.Invoke(dispIDMember, _
             riid, lcid, wFlags, _
             pDispParams, _
             pVarResult, pExcepInfo, puArgErr)
-        Err.ReturnHResult = Err.LastHResult 'maybe not needed...        
+        Err.ReturnHResult = Err.LastHResult 'maybe not needed...
     End Sub
-    
+
     Private Sub New(ByVal BaseAccessor As IDispatch)
         Set Me.BaseAccessor = BaseAccessor
         Dim pDefaultVTable As LongPtr = MemLongPtr(ObjPtr(Me))
         'addressof classmethod fails as it is per instance temp stub fn
         Logger.Log TraceLevel, "About to perform VT swap"
         ' CopyMemory pDefaultVTable + PTR_SIZE * 3, pDefaultVTable + PTR_SIZE * 7, 4 * PTR_SIZE
-        MemLongPtr(pDefaultVTable + PTR_SIZE * 3) = MemLongPtr(pDefaultVTable + PTR_SIZE * 7)'AddressOf IDispatch_GetTypeInfoCount  
+        MemLongPtr(pDefaultVTable + PTR_SIZE * 3) = MemLongPtr(pDefaultVTable + PTR_SIZE * 7)'AddressOf IDispatch_GetTypeInfoCount
         MemLongPtr(pDefaultVTable + PTR_SIZE * 4) = MemLongPtr(pDefaultVTable + PTR_SIZE * 8)'AddressOf IDispatch_GetTypeInfo
         MemLongPtr(pDefaultVTable + PTR_SIZE * 5) = MemLongPtr(pDefaultVTable + PTR_SIZE * 9)'AddressOf IDispatchVB_GetIDsOfNamesVB 'MemLongPtr(pOverloadVTable + PTR_SIZE * 7) 'getIDsOfNames
         MemLongPtr(pDefaultVTable + PTR_SIZE * 6) = MemLongPtr(pDefaultVTable + PTR_SIZE * 10)'AddressOf IDispatchVB_InvokeVB 'MemLongPtr(pOverloadVTable + PTR_SIZE * 8) 'invoke
         Logger.Log TraceLevel, printf("VT swap complete {}<-{} ({}[{}])", pDefaultVTable + PTR_SIZE * 3, pDefaultVTable + PTR_SIZE * 7, 4 * PTR_SIZE, PTR_SIZE)
     End Sub
-    
+
 End Class
 
 Module ProxyObjectEntryPoint

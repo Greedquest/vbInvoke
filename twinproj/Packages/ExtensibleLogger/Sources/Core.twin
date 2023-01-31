@@ -98,10 +98,10 @@ Module Patches
         If dict.Exists(key) Then
             LetSet outValue, dict(key)
             TryGetValue = True
-            
+
         Else
             TryGetValue = False
-            
+
         End If
 
     End Function

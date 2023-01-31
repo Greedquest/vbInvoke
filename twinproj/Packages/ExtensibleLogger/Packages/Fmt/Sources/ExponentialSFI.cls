@@ -18,10 +18,10 @@ Private Function IStringFormatIdentifier_GetFormattedValue(ByVal value As Varian
     'But that should be checked earlier
     If specifier.Precision > 0 Then
         IStringFormatIdentifier_GetFormattedValue = Format$(value, "0." & String$(specifier.Precision - 1, Chr$(48)) & "#" & specifier.identifier & "-#")
-        
+
     Else
         IStringFormatIdentifier_GetFormattedValue = Format$(value, "0.00000#" & specifier.identifier & "-#") 'defaults to 6 decimals
-        
+
     End If
 End Function
 

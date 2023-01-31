@@ -7,7 +7,7 @@ Module Logging
         End If
         Set Logger = LogManager
     End Property
-    
+
     Public Function printf(ByVal mask As String, ParamArray tokens() As Variant) As String
         Dim i As Long
         For i = 0 To UBound(tokens)
@@ -24,7 +24,7 @@ Module Logging
         mask = Replace$(mask, "\}", "}")
         printf = mask
     End Function
-    
+
     Public Sub Assert(ByVal condition As Boolean, Optional ByVal message As String, Optional ByVal customLog As LogManager)
         If Not condition Then
             With If(customLog Is Nothing, Logger, customLog)
@@ -48,7 +48,7 @@ Public Class TypeLibEntryPoints
     Public Function GetStandardModuleAccessor(ByVal moduleName As String, ByVal proj As VBProject) As Object
     	Return DllEntryPoints.GetStandardModuleAccessor(moduleName, proj)
     End Function
-    
+
     Public Function GetExtendedModuleAccessor(ByVal moduleName As String, ByVal proj As VBProject, Optional ByRef outPrivateTI As ITypeInfo) As Object
     	Return DllEntryPoints.GetExtendedModuleAccessor(moduleName, proj, outPrivateTI)
     End Function
@@ -63,18 +63,18 @@ Module DllEntryPoints
         Set GetStandardModuleAccessor = StdModuleAccessor(moduleName, proj, proj.Name, outPublicTI, outExtendedTL)
         Logger.Log InfoLevel, printf("Discarding ITypeInfo @{} + ITypeLib* @{}", ObjPtr(outPublicTI), ObjPtr(outExtendedTL.ITypeLib))
     End Function
-    
+
     [ DllExport ]
     Public Function GetExtendedModuleAccessor(ByVal moduleName As Variant, ByVal proj As VBProject, ByRef outPrivateTI As ITypeInfo) As Object
         Logger.Log InfoLevel, printf("Invoking GetExtendedModuleAccessor on {}.{}", proj.Name, moduleName)
-        
+
         'Get the base accessor (same as GetStandardModuleAccessor above) and keep the extended typelib
-        ' which can be used to obtain private type info 
+        ' which can be used to obtain private type info
         Dim outPublicTI As ITypeInfo
         Dim outExtendedTL As TypeLibInfo
         Dim baseAccessor As Object = StdModuleAccessor(moduleName, proj, proj.Name, outPublicTI, outExtendedTL)
         Logger.Log InfoLevel, printf("Got ITypeInfo @{} + ITypeLib* @{}", ObjPtr(outPublicTI), ObjPtr(outExtendedTL.ITypeLib))
-        
+
         'The StdModuleAccessor function does obtain the correct Extended ITypeInfo
         ' however it gets lost along the way (since VBA modules ITypeInfo is double implemented public & private)
         'Therefore to guarantee we have the full type info, we can get it from the hidden typelib
@@ -84,7 +84,7 @@ Module DllEntryPoints
         Dim pcFound As Integer = 1 'to get only the first matching type-info which cshould be correct
         outExtendedTL.ITypeLib.FindName StrPtr(moduleName), 0, outPrivateTI, memberID, pcFound
         Logger.Log InfoLevel, printf("{} PrivateITypeInfo @{}", pcFound, ObjPtr(outPrivateTI))
-        
+
         'This tapes the full ITypeInfo to the StdModuleAccessor, allowing for IDispatch to handle the
         ' calls to both public and private methods
         Dim swapClass As SwapClassEX = New SwapClassEX(baseAccessor, outPrivateTI)
@@ -98,7 +98,7 @@ Class SwapClassEX
     Private Declare PtrSafe Function SysReAllocString Lib "oleaut32.dll" (ByVal pBSTR As LongPtr, Optional ByVal pszStrPtr As LongPtr) As Long
     Private ReadOnly BaseAccessor As vbInvoke.IDispatch 'don't use stdole since that doesn't have the methods visible
     Private ReadOnly ExtendedTypeInfo As ITypeInfo
- 
+
     'DO NOT REORDER these 4 functions. Do NOT add new properties above them. This will alter VTable offsets
     Private Sub IDispatch_GetTypeInfoCount(ByRef outTICount As Long)
         Logger.Log TraceLevel, "IDispatch_GetTypeInfoCount"
@@ -106,8 +106,8 @@ Class SwapClassEX
         Logger.Log DebugLevel, "outTICount = " & outTICount
         Err.ReturnHResult = Err.LastHResult
     End Sub
-    
-    Private Sub IDispatch_GetTypeInfo( _ 
+
+    Private Sub IDispatch_GetTypeInfo( _
         ByVal tiIndex As Long, _
         ByVal lcid As Long, _
         ByRef outpITypeInfo As LongPtr)
@@ -115,9 +115,9 @@ Class SwapClassEX
         'TODO find a way to return extended typeinfo (objptr(ExtendedTypeInfo) doesn't help)
         On Error Resume Next
         BaseAccessor.GetTypeInfo tiIndex, lcid, outpITypeInfo
-        Err.ReturnHResult = Err.LastHResult 'REVIEW maybe not needed...   
+        Err.ReturnHResult = Err.LastHResult 'REVIEW maybe not needed...
     End Sub
- 
+
     Private Sub IDispatch_GetIDsOfNames(ByVal riid As LongPtr, ByVal namesArray As LongPtr, ByVal cNames As Long, ByVal lcid As Long, ByVal dispidArray As LongPtr)
         Logger.Log TraceLevel, "IDispatchVB_GetIDsOfNamesVB"
         Dim i As Long
@@ -140,21 +140,21 @@ Class SwapClassEX
             riid, lcid, wFlags, _
             pDispParams, _
             pVarResult, pExcepInfo, puArgErr)
-        Err.ReturnHResult = Err.LastHResult 'REVIEW maybe not needed...  
+        Err.ReturnHResult = Err.LastHResult 'REVIEW maybe not needed...
     End Sub
-    
+
     Private Sub New(ByVal accessor As IDispatch, ByRef moduleTypeInfo As ITypeInfo)
         Logger.Log TraceLevel, "Creating SwapClass"
         Set BaseAccessor = accessor
         Dim caster As New GenericCaster(Of ITypeInfo, ITypeInfo)
         caster.Cast(ExtendedTypeInfo) = moduleTypeInfo
         Logger.Log DebugLevel, printf("Stored private ti@{}, supplied@{}", ObjPtr(ExtendedTypeInfo), ObjPtr(moduleTypeInfo))
-        
+
         Dim pDefaultVTable As LongPtr = MemLongPtr(ObjPtr(Me))
         'addressof classmethod fails as it is per instance temp stub fn
         Logger.Log TraceLevel, "About to perform VT swap"
         ' CopyMemory pDefaultVTable + PTR_SIZE * 3, pDefaultVTable + PTR_SIZE * 7, 4 * PTR_SIZE
-        MemLongPtr(pDefaultVTable + PTR_SIZE * 3) = MemLongPtr(pDefaultVTable + PTR_SIZE * 7)'AddressOf IDispatch_GetTypeInfoCount  
+        MemLongPtr(pDefaultVTable + PTR_SIZE * 3) = MemLongPtr(pDefaultVTable + PTR_SIZE * 7)'AddressOf IDispatch_GetTypeInfoCount
         MemLongPtr(pDefaultVTable + PTR_SIZE * 4) = MemLongPtr(pDefaultVTable + PTR_SIZE * 8)'AddressOf IDispatch_GetTypeInfo
         MemLongPtr(pDefaultVTable + PTR_SIZE * 5) = MemLongPtr(pDefaultVTable + PTR_SIZE * 9)'AddressOf IDispatchVB_GetIDsOfNamesVB 'MemLongPtr(pOverloadVTable + PTR_SIZE * 7) 'getIDsOfNames
         MemLongPtr(pDefaultVTable + PTR_SIZE * 6) = MemLongPtr(pDefaultVTable + PTR_SIZE * 10)'AddressOf IDispatchVB_InvokeVB 'MemLongPtr(pOverloadVTable + PTR_SIZE * 8) 'invoke

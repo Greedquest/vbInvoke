@@ -12,7 +12,7 @@ Option Explicit
 
 Implements IDispatchVB 'For the VTable swap
 Implements IModuleInfo 'Easy access to additional methods
-     
+
 Private Declare PtrSafe Function SysReAllocString Lib "oleaut32.dll" (ByVal pBSTR As LongPtr, Optional ByVal pszStrPtr As LongPtr) As Long
 
 Public accessor As Object
@@ -26,11 +26,11 @@ Private Sub Class_Initialize()
     Dim pInvokeVB As LongPtr, pInvokeOriginal As LongPtr
     pInvokeVB = pAsDispVT + IDispatchVBVTableOffset(IDispatchVBVTable.InvokeVB)
     pInvokeOriginal = pAsDispVT + IDispatchVBVTableOffset(IDispatchVBVTable.IDispatch.Invoke)
-    
+
     Dim pGetIDsOfNamesVB As LongPtr, pGetIDsOfNamesOriginal As LongPtr
     pGetIDsOfNamesVB = pAsDispVT + IDispatchVBVTableOffset(IDispatchVBVTable.GetIDsOfNamesVB)
     pGetIDsOfNamesOriginal = pAsDispVT + IDispatchVBVTableOffset(IDispatchVBVTable.IDispatch.GetIDsOfNames)
-    
+
     'swap the vtable entries
     memlongptr(pGetIDsOfNamesOriginal) = memlongptr(pGetIDsOfNamesVB)
     memlongptr(pInvokeOriginal) = memlongptr(pInvokeVB)

@@ -20,7 +20,7 @@ Attribute GetFuncDispidFromTypeInfo.VB_Description = "Returns a map of funcName:
     Dim result As Scripting.Dictionary
     Set result = New Scripting.Dictionary
     result.CompareMode = TextCompare 'so we can look names up in a case insensitive manner
-    
+
     Dim funcIndex As Long
     For funcIndex = 0 To attrs.cFuncs - 1
         Dim funcDescriptior As FUNCDESC
@@ -34,7 +34,7 @@ Attribute GetFuncDispidFromTypeInfo.VB_Description = "Returns a map of funcName:
                 .INVOKEKIND = INVOKE_PROPERTYPUT, "VbLet", _
                 .INVOKEKIND = INVOKE_PROPERTYPUTREF, "VbSet" _
                 ) & "@" & .memid
-            
+
             'property get/set all have the same dispid so only need to be here once
             If Not result.Exists(funcName) Then
                 result.Add funcName, .memid
@@ -43,7 +43,7 @@ Attribute GetFuncDispidFromTypeInfo.VB_Description = "Returns a map of funcName:
             Else
                 Debug.Assert .INVOKEKIND <> INVOKE_METHOD 'this method & dispid should not appear twice
             End If
-            
+
         End With
         funcName = vbNullString
     Next
@@ -74,7 +74,7 @@ Public Function getAttrs(ByVal ITypeInfo As IUnknown) As TYPEATTR
     'make a local copy of the data so we can safely release the reference to the type attrs object
     'TODO Is it safe? Does this make the info in the attrs structure invalid?
     CopyMemory getAttrs, ByVal pTypeAttr, LenB(getAttrs)
-    
+
     'void ITypeInfo::ReleaseTypeAttr( [in] TYPEATTR *pTypeAttr)
     COMTools.CallCOMObjectVTableEntry ITypeInfo, ITypeInfoVTableOffset(ITypeInfoVTable.ReleaseTypeAttr), CR_None, pTypeAttr
     pTypeAttr = NULL_PTR 'good practice to null released pointers so we don't accidentally use them
@@ -86,10 +86,10 @@ Public Function getFuncDesc(ByVal ITypeInfo As IUnknown, ByVal index As Long) As
     Dim pFuncDesc As LongPtr
     hresult = COMTools.CallCOMObjectVTableEntry(ITypeInfo, ITypeInfoVTableOffset(ITypeInfoVTable.getFuncDesc), CR_HRESULT, index, VarPtr(pFuncDesc))
     If hresult <> S_OK Then Err.Raise hresult
-    
+
     'logic same as in tryGetAttrs
     CopyMemory getFuncDesc, ByVal pFuncDesc, LenB(getFuncDesc)
-    
+
     'void     ReleaseFuncDesc( [in] FUNCDESC *pFuncDesc)
     COMTools.CallCOMObjectVTableEntry ITypeInfo, ITypeInfoVTableOffset(ITypeInfoVTable.ReleaseFuncDesc), CR_None, pFuncDesc
     pFuncDesc = NULL_PTR

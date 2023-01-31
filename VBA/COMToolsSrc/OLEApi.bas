@@ -23,7 +23,7 @@ End Enum
 Public Declare PtrSafe Function DispGetIDsOfNames Lib "oleaut32.dll" ( _
     ByVal ptinfo As LongPtr, ByVal rgszNames As LongPtr, ByVal cNames As Long, ByVal rgDispId As LongPtr _
 ) As hResultCode
-    
+
 'CreateStdDispatch(
 '  IUnknown  *punkOuter,
 '  void      *pvThis,

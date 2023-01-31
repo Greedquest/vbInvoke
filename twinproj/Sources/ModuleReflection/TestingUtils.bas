@@ -10,18 +10,18 @@
 '     localeID = Application.LanguageSettings.LanguageID(msoLanguageIDUI)
 
 '     Dim outExcepInfo As EXCEPINFOt
-    
+
 '     Dim guidIID_NULL As GUIDt
 '     guidIID_NULL = GUIDFromString(IID_NULL)
 '     '@Ignore IntegerDataType
 '     Dim flags As Integer
 '     flags = tagINVOKEKIND.INVOKE_METHOD
-    
+
 '     Dim params As DISPPARAMSt 'this empty should be sufficient if no params
 
 '     Dim outResult As Variant
 '     Dim outFirstBadArgIndex As Long
-    
+
 '     'HRESULT Invoke(
 '     '  [in]      DISPID     dispIdMember,
 '     '  [in]      REFIID     riid,
@@ -43,7 +43,7 @@
 '         VarPtr(params), _
 '         VarPtr(outResult), VarPtr(outExcepInfo), VarPtr(outFirstBadArgIndex) _
 '         )
-    
+
 '     If hresult <> S_OK Then Stop
 '     On Error GoTo 0
 ' End Sub
@@ -56,9 +56,9 @@
 '     CallByName accessor, methodName, vbMethod
 '     Debug.Print "After"
 '     Exit Sub
-    
+
 ' logErr:
 '     MsgBox Err.Number & "-" & Err.Description, vbCritical + vbOKOnly, "Error when Invoking Sub"
 '     Resume Next
-    
+
 ' End Sub

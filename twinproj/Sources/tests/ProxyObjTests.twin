@@ -4,13 +4,13 @@ Public Module ProxyObjTests
         Dim baseObject As Object = New Dictionary
         Logger.Log InfoLevel, printf("TypeName(baseObject)='{}'", TypeName(baseObject))
         baseObject.add "foo", 11
-        
+
         'should call our swapped function!
         Dim proxyObject As Object = makeProxy(baseObject)
         Logger.Log TraceLevel, "Proxy made"
         Logger.Log InfoLevel, printf("TypeName(proxyObject)='{}'", TypeName(proxyObject))
         proxyObject.add "bar", 12
-        
+
         Dim item As Variant
         For Each item In baseObject
             Logger.Log InfoLevel, printf("Got a '{}'", item)

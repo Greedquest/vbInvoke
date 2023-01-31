@@ -102,20 +102,20 @@ Module VBETypeLib
         '@Ignore KeywordsUsedAsMember: makes it clearer despite what RD wants
         Next As LongPtr
     End Type
-      
-    
+
+
     Public Function StdModuleAccessor(ByVal moduleName As String, ByVal vbProj As VBProject, ByVal projectName As String, Optional ByRef outModuleTypeInfo As ITypeInfo, Optional ByRef outTypeLib As TypeLibInfo) As Object
         Logger.Log TraceLevel, "Get ref instance ptr"
         Dim referencesInstancePtr As LongPtr
         referencesInstancePtr = ObjPtr(vbProj.References)
         Assert referencesInstancePtr <> 0, "referencesInstancePtr = 0"
-        
+
         Logger.Log TraceLevel, "Get ref obj"
         'The references object instance looks like this, and has a raw pointer contained within it to the typelibs it uses
         Dim refData As VBEReferencesObj
         CopyMemory refData, ByVal referencesInstancePtr, LenB(refData)
         Assert refData.vTable1 = MemLongPtr(referencesInstancePtr), "refData.vTable1 <> MemLongPtr(referencesInstancePtr)"
-        
+
         Logger.Log TraceLevel, "Get typelib instance table"
         Dim typeLibInstanceTable As VBETypeLibObj
         CopyMemory typeLibInstanceTable, ByVal refData.typeLib, LenB(typeLibInstanceTable)
@@ -123,7 +123,7 @@ Module VBETypeLib
         'Create a class to iterate over the doubly linked list
         Dim typeLibPtrs As New VBETypeLibIterator
         typeLibPtrs.baseTypeLib = refData.typeLib
-        
+
         'Now we could use proj.module.sub to find something in particular
         'For now though, we just want a reference to the typeInfo for the ExampleModule
         Dim found As Boolean
@@ -136,7 +136,7 @@ Module VBETypeLib
                 LogManager.Log DebugLevel, printf("outTypeLib.name was empty, continuing assuming it was immediate window")
             End If
             LogManager.Log InfoLevel, printf("Discovered Project: '{}'@{}", tlName, ObjPtr(outTypeLib.ITypeLib))
-                  
+
             If tlName = projectName Then
                 'we have found the project typelib, check for the correct module within it
                 Dim moduleTI As ITypeInfo
@@ -155,12 +155,12 @@ Module VBETypeLib
         '   In RD this is done via Aggregation
         '   Meaning an object is made by merging the COM interface with a managed C# interface
         '   We don't have to worry about this, it is just to avoid some bug with C# reflection I think
-        
+
         Logger.Log DebugLevel, "Trying to cast object @" & ObjPtr(moduleTI)
         Dim vbeComponent As IVBEComponent
         Set vbeComponent = moduleTI
         Logger.Log DebugLevel, "Got an IVBEComponent @" & ObjPtr(vbeComponent)
-        
+
         Set outModuleTypeInfo = moduleTI
         Set StdModuleAccessor = vbeComponent.GetStdModAccessor()
 

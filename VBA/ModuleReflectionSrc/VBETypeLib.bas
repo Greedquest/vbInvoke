@@ -26,23 +26,23 @@ End Type
 
 
 Public Function StdModuleAccessor(ByVal moduleName As String, ByVal project As String, Optional ByRef outModuleTypeInfo As TypeInfo, Optional ByRef outITypeLib As LongPtr) As Object
-    
+
     Dim referencesInstancePtr As LongPtr
     referencesInstancePtr = ObjPtr(Application.VBE.ActiveVBProject.References)
     Debug.Assert referencesInstancePtr <> 0
-    
+
     'The references object instance looks like this, and has a raw pointer contained within it to the typelibs it uses
     Dim refData As VBEReferencesObj
     MemoryTools.CopyMemory refData, ByVal referencesInstancePtr, LenB(refData)
     Debug.Assert refData.vTable1 = memlongptr(referencesInstancePtr)
-    
+
     Dim typeLibInstanceTable As VBETypeLibObj
     MemoryTools.CopyMemory typeLibInstanceTable, ByVal refData.typeLib, LenB(typeLibInstanceTable)
 
     'Create a class to iterate over the doubly linked list
     Dim typeLibPtrs As New TypeLibIterator
     typeLibPtrs.baseTypeLib = refData.typeLib
-    
+
     'Now we could use proj.module.sub to find something in particular
     'For now though, we just want a reference to the typeInfo for the ExampleModule
     Dim projectTypeLib As TypeLibInfo
@@ -70,12 +70,12 @@ Public Function StdModuleAccessor(ByVal moduleName As String, ByVal project As S
     '   We don't have to worry about this, it is just to avoid some bug with C# reflection I think
     Dim IVBEComponent As LongPtr
     IVBEComponent = COMTools.QueryInterface(moduleTI.ITypeInfo, InterfacesDict("IVBEComponent"))
-    
+
     'Call Function IVBEComponent::GetStdModAccessor() As IDispatch
     Dim stdModAccessor As Object
     Set stdModAccessor = GetStdModAccessor(IVBEComponent)
     'ERROR: Failed to call VTable method. DispCallFunc HRESULT: 0x80004001 - E_NOTIMPL
-    
+
     'return result
     Set StdModuleAccessor = stdModAccessor
     Set outModuleTypeInfo = moduleTI

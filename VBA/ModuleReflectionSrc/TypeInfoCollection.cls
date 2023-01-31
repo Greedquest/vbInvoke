@@ -34,14 +34,14 @@ Private Function tryGenerateNext(ByRef outITypeInfo As TypeInfo) As Boolean
     If i >= this.count Then Exit Function
     On Error Resume Next
         Dim rawITypeInfo As IUnknown
-        
+
         Set rawITypeInfo = TypeLibHelper.getITypeInfoByIndex(ITypeLib, i)
         i = i + 1
-        
+
         Dim noErrors As Boolean
         noErrors = Err.Number = 0
     On Error GoTo 0
-    
+
     If noErrors Then
         Set outITypeInfo = New TypeInfo
         Set outITypeInfo.ITypeInfo = rawITypeInfo

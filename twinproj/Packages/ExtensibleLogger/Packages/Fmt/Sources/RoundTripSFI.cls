@@ -20,7 +20,7 @@ Private Function IStringFormatIdentifier_GetFormattedValue(ByVal value As Varian
 
     'convert value to a Double (chop off overflow digits):
     IStringFormatIdentifier_GetFormattedValue = CDbl(value)
-    
+
 End Function
 
 Private Function IStringFormatIdentifier_IsIdentifierMatch(ByVal specifier As StringFormatSpecifier) As Boolean

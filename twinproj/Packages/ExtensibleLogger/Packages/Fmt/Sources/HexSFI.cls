@@ -16,14 +16,14 @@ Implements IStringFormatIdentifier
 Private Function IStringFormatIdentifier_GetFormattedValue(ByVal value As Variant, ByVal specifier As StringFormatSpecifier) As String
     Dim hexValue As String
     hexValue = Hex$(value)
-    
+
     'add left padding and trim to size
     If specifier.Precision > 0 Then
         hexValue = Right$(String$(specifier.Precision, "0") & hexValue, specifier.Precision)
     End If
 
     IStringFormatIdentifier_GetFormattedValue = CopyCapitalisation(specifier.identifier, "&h" & hexValue)
-    
+
 End Function
 
 Private Function IStringFormatIdentifier_IsIdentifierMatch(ByVal specifier As StringFormatSpecifier) As Boolean

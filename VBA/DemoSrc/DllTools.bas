@@ -13,7 +13,7 @@ Public Const TEMP_PATH As String = "C:\GitHub\vbInvoke\Build\.active\" & DLLNAME
 Public Sub RefreshDll()
     Dim existingHandle As LongPtr
     existingHandle = GetModuleHandle(DLLNAME)
-    
+
     If existingHandle <> 0 Then
         Debug.Assert FreeLibrary(existingHandle) = 1 'released our LoadLibrary call at least
         If FreeLibrary(existingHandle) = 0 Then Debug.Print "[INFO] DLL was not used by VBA since last refresh"
@@ -21,7 +21,7 @@ Public Sub RefreshDll()
     Else
         Debug.Print "[WARN] DLL not already loaded"
     End If
-    
+
     FileCopy FILEPATH, TEMP_PATH 'allows overwriting temp path unlike Name...As
     Kill FILEPATH 'ensures we call refresh only when there is a new build
     Dim newHandle As LongPtr

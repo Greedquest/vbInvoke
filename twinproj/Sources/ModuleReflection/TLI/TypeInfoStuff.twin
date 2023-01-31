@@ -3,17 +3,17 @@ Private Class TypeInfoCollection
     Public ReadOnly typeLib As ITypeLib
     Private ReadOnly typeInfoCount As long
     Private typeInfos As Dictionary = New Dictionary
-    
+
     Public Sub New(ByVal wrappedITypeLib As ITypeLib)
         Set typeLib = wrappedITypeLib
         typeInfoCount = getTypeInfoCount(typeLib)
     End Sub
-    
+
     Private Function tryGenerateNext(ByRef outITypeInfo As ITypeInfo) As Boolean
         Static i As Long 'zero indexed
         Logger.Log DebugLevel, printf("tryGenerate ti i={}", i)
         If i >= typeInfoCount Then Return False
-        
+
         'if there are errors here we want to know about them
         Dim rawITypeInfo As ITypeInfo
         Set rawITypeInfo = TypeLibHelper.getITypeInfoByIndex(typeLib, i)
@@ -44,7 +44,7 @@ Private Class TypeInfoCollection
         Loop
         Logger.Log DebugLevel, "TypeInfos: " & Join(typeInfos.Keys, ", ")
         Logger.Log InfoLevel, "Found it!"
-        
+
         'TODO there is no way to cache the TI pointers AND return them without QI unless pointer tricks are used
         'So see if this pre-QI TypeInfo is even the private one ExtendedTL would return
         'Then decide between a second stage ExtendedTypeLib::GetTypeInfo
@@ -62,11 +62,11 @@ Module TypeInfoHelper
     'Modified by wqweto 2020 (clean up)
     'Modified by Greedo 2022 (refactor)
     'Modified by Greedo Oct 2022 (convert to twinBASIC)
-    
+
     Public Enum KnownMemberIDs
         MEMBERID_NIL = -1
     End Enum
-    
+
     [ Description ("Returns a map of funcName:dispid given a certain ITypeInfo without TLBINF32.dll") ]
     Public Function GetFuncDispidFromTypeInfo(ByVal ITypeInfo As ITypeInfo) As Scripting.Dictionary
         Dim attrs As TYPEATTR
@@ -75,7 +75,7 @@ Module TypeInfoHelper
         Dim result As Scripting.Dictionary
         Set result = New Scripting.Dictionary
         result.CompareMode = TextCompare 'so we can look names up in a case insensitive manner
-        
+
         Dim funcIndex As Long
         For funcIndex = 0 To attrs.cFuncs - 1
             Dim funcDescriptior As FUNCDESC
@@ -89,7 +89,7 @@ Module TypeInfoHelper
                     .INVOKEKIND = INVOKE_PROPERTYPUT, "VbLet", _
                     .INVOKEKIND = INVOKE_PROPERTYPUTREF, "VbSet" _
                     ) & "@" & .memid
-                
+
                 'property get/set all have the same dispid so only need to be here once
                 If Not result.Exists(funcName) Then
                     result.Add funcName, .memid
@@ -98,7 +98,7 @@ Module TypeInfoHelper
                 Else
                 Assert .INVOKEKIND <> INVOKE_METHOD, "this method & dispid should not appear twice"
                 End If
-                
+
             End With
             funcName = vbNullString
         Next
@@ -112,7 +112,7 @@ Module TypeInfoHelper
     Public Function getModName(ByVal ITypeInfo As ITypeInfo) As String
         getModName = getDocumentation(ITypeInfo, KnownMemberIDs.MEMBERID_NIL)
     End Function
-    
+
     Private Function getDocumentation(ByVal ITypeInfo As ITypeInfo, ByVal memid As DISPID) As String
         ITypeInfo.GetDocumentation memid, getDocumentation
     End Function
@@ -124,7 +124,7 @@ Module TypeInfoHelper
         'make a local copy of the data so we can safely release the reference to the type attrs object
         'REVIEW Is it safe? Does this make the info in the attrs structure invalid?
         CopyMemory getAttrs, ByVal pTypeAttr, LenB(getAttrs)
-        
+
         ITypeInfo.ReleaseTypeAttr pTypeAttr
         pTypeAttr = NULL_PTR 'good practice to null released pointers so we don't accidentally use them
     End Function
@@ -132,10 +132,10 @@ Module TypeInfoHelper
     Public Function getFuncDesc(ByVal ITypeInfo As ITypeInfo, ByVal index As Long) As FUNCDESC
         Dim pFuncDesc As LongPtr
         ITypeInfo.GetFuncDesc index, pFuncDesc
-        
+
         'logic same as in tryGetAttrs
         CopyMemory getFuncDesc, ByVal pFuncDesc, LenB(getFuncDesc)
-        
+
         ITypeInfo.ReleaseFuncDesc pFuncDesc
         pFuncDesc = NULL_PTR
     End Function
