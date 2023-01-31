@@ -6,7 +6,7 @@ Library for calling methods in VBA modules with 3 key benefits
   - Can call public _or_ private methods
   
   
-Under the hood it uses the same technique as [Rubberduck's](https://github.com/rubberduck-vba/Rubberduck) test execution engine to access the addresses of the public and private methods, ported from C# to VBA to twinBASIC (thanks RD team & Wayne for all the help). That foundation is then supplemented with a new technique to make calling them from VBA or tB much more natural. Click on the code review shield at top of post
+Under the hood it uses the same technique as [Rubberduck's](https://github.com/rubberduck-vba/Rubberduck) test execution engine to access the addresses of the public and private methods, ported from C# to VBA to twinBASIC (thanks RD team & Wayne for all the help). That foundation is then supplemented with a new technique to make calling them from VBA or tB much more natural. Click on the code review shield at top of post for more detailed code/technique walkthrough (written before tB port, but the concepts are the same)
 
 ## Quickstart
 Compile an ActiveX Dll from the `vbInvoke.twinproj`, or use the precompiled `vbInvoke_win[32/64].dll` (all found in the release Assets - whichever matches your VBA bitness). The library has 2 main methods and 2 ways of calling them:
