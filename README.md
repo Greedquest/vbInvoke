@@ -18,6 +18,7 @@ Function GetStandardModuleAccessor(ByVal moduleName As String, ByVal proj As VBP
 Function GetExtendedModuleAccessor(ByVal moduleName As String, ByVal proj As VBProject, Optional ByRef outPrivateTI As vbInvoke.[_ITypeInfo]) As Object
 ```
 
+
 _<ins>or</ins>_
 ### Standard DLL Declare
 
@@ -26,7 +27,7 @@ Declare PtrSafe Function GetStandardModuleAccessor Lib "vbInvoke_win64" (ByVal m
 Declare PtrSafe Function GetExtendedModuleAccessor Lib "vbInvoke_win64" (ByVal moduleName As Variant, ByVal proj As VBProject, ByRef outPrivateTI As IUnknown) As Object
 ```
 
-<sub>_Note: The standard DLL version uses `Variant` for the module name and has no optional arguments_</sub>
+<sub>_Note: The standard DLL version uses `Variant` for the module name and has no optional arguments. The Library name in the object browser and intellisense is `vbInvoke`_</sub>
 
 ---
 
