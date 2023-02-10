@@ -1,73 +1,56 @@
-
-' 'TODO tidy this up
-' '    MIDL_INTERFACE ("00020402-0000-0000-C000-000000000046")
-' 'ITypeLib:      Public IUnknown
-' '0      HRESULT  QueryInterface ([in] REFIID riid, [out] void **ppvObject)
-' '1      ULONG    AddRef ()
-' '2      ULONG    Release ()
-' '3      UINT     GetTypeInfoCount( void) = 0;
-' '4      HRESULT  GetTypeInfo(
-' '            /* [in] */ UINT index,
-' '            /* [out] */ __RPC__deref_out_opt ITypeInfo **ppTInfo) = 0;
-' '
-' '        virtual HRESULT STDMETHODCALLTYPE GetTypeInfoType(
-' '            /* [in] */ UINT index,
-' '            /* [out] */ __RPC__out TYPEKIND *pTKind) = 0;
-' '
-' '        virtual HRESULT STDMETHODCALLTYPE GetTypeInfoOfGuid(
-' '            /* [in] */ __RPC__in REFGUID guid,
-' '            /* [out] */ __RPC__deref_out_opt ITypeInfo **ppTinfo) = 0;
-' '
-' '        virtual /* [local] */ HRESULT STDMETHODCALLTYPE GetLibAttr(
-' '            /* [out] */ TLIBATTR **ppTLibAttr) = 0;
-' '
-' '        virtual HRESULT STDMETHODCALLTYPE GetTypeComp(
-' '            /* [out] */ __RPC__deref_out_opt ITypeComp **ppTComp) = 0;
-' '
-' '        virtual /* [local] */ HRESULT STDMETHODCALLTYPE GetDocumentation(
-' '            /* [in] */ INT index,
-' '            /* [annotation][out] */
-' '            _Outptr_opt_  BSTR *pBstrName,
-' '            /* [annotation][out] */
-' '            _Outptr_opt_  BSTR *pBstrDocString,
-' '            /* [out] */ DWORD *pdwHelpContext,
-' '            /* [annotation][out] */
-' '            _Outptr_opt_  BSTR *pBstrHelpFile) = 0;
-' '
-' '        virtual /* [local] */ HRESULT STDMETHODCALLTYPE IsName(
-' '            /* [annotation][out][in] */
-' '            __RPC__inout  LPOLESTR szNameBuf,
-' '            /* [in] */ ULONG lHashVal,
-' '            /* [out] */ BOOL *pfName) = 0;
-' '
-' '        virtual /* [local] */ HRESULT STDMETHODCALLTYPE FindName(
-' '            /* [annotation][out][in] */
-' '            __RPC__inout  LPOLESTR szNameBuf,
-' '            /* [in] */ ULONG lHashVal,
-' '            /* [length_is][size_is][out] */ ITypeInfo **ppTInfo,
-' '            /* [length_is][size_is][out] */ MEMBERID *rgMemId,
-' '            /* [out][in] */ USHORT *pcFound) = 0;
-' '
-' '        virtual /* [local] */ void STDMETHODCALLTYPE ReleaseTLibAttr(
-' '            /* [in] */ TLIBATTR *pTLibAttr) = 0;
-' '
-' '    };
-
-' Public Type ITypeLibVTable
-'     IUnknown As IUnknownVTable
-'     GetTypeInfoCount As LongPtr
-'     GetTypeInfo As LongPtr
-'     GetTypeInfoType As LongPtr
-'     GetTypeInfoOfGuid As LongPtr
-'     GetLibAttr As LongPtr
-'     GetTypeComp As LongPtr
-'     GetDocumentation As LongPtr
-'     IsName As LongPtr
-'     FindName As LongPtr
-'     ReleaseTLibAttr As LongPtr
-' End Type: Public ITypeLibVTable As ITypeLibVTable
-
-
+'TODO tidy this up
+'    MIDL_INTERFACE ("00020402-0000-0000-C000-000000000046")
+'ITypeLib:      Public IUnknown
+'0      HRESULT  QueryInterface ([in] REFIID riid, [out] void **ppvObject)
+'1      ULONG    AddRef ()
+'2      ULONG    Release ()
+'3      UINT     GetTypeInfoCount( void) = 0;
+'4      HRESULT  GetTypeInfo(
+'            /* [in] */ UINT index,
+'            /* [out] */ __RPC__deref_out_opt ITypeInfo **ppTInfo) = 0;
+'
+'        virtual HRESULT STDMETHODCALLTYPE GetTypeInfoType(
+'            /* [in] */ UINT index,
+'            /* [out] */ __RPC__out TYPEKIND *pTKind) = 0;
+'
+'        virtual HRESULT STDMETHODCALLTYPE GetTypeInfoOfGuid(
+'            /* [in] */ __RPC__in REFGUID guid,
+'            /* [out] */ __RPC__deref_out_opt ITypeInfo **ppTinfo) = 0;
+'
+'        virtual /* [local] */ HRESULT STDMETHODCALLTYPE GetLibAttr(
+'            /* [out] */ TLIBATTR **ppTLibAttr) = 0;
+'
+'        virtual HRESULT STDMETHODCALLTYPE GetTypeComp(
+'            /* [out] */ __RPC__deref_out_opt ITypeComp **ppTComp) = 0;
+'
+'        virtual /* [local] */ HRESULT STDMETHODCALLTYPE GetDocumentation(
+'            /* [in] */ INT index,
+'            /* [annotation][out] */
+'            _Outptr_opt_  BSTR *pBstrName,
+'            /* [annotation][out] */
+'            _Outptr_opt_  BSTR *pBstrDocString,
+'            /* [out] */ DWORD *pdwHelpContext,
+'            /* [annotation][out] */
+'            _Outptr_opt_  BSTR *pBstrHelpFile) = 0;
+'
+'        virtual /* [local] */ HRESULT STDMETHODCALLTYPE IsName(
+'            /* [annotation][out][in] */
+'            __RPC__inout  LPOLESTR szNameBuf,
+'            /* [in] */ ULONG lHashVal,
+'            /* [out] */ BOOL *pfName) = 0;
+'
+'        virtual /* [local] */ HRESULT STDMETHODCALLTYPE FindName(
+'            /* [annotation][out][in] */
+'            __RPC__inout  LPOLESTR szNameBuf,
+'            /* [in] */ ULONG lHashVal,
+'            /* [length_is][size_is][out] */ ITypeInfo **ppTInfo,
+'            /* [length_is][size_is][out] */ MEMBERID *rgMemId,
+'            /* [out][in] */ USHORT *pcFound) = 0;
+'
+'        virtual /* [local] */ void STDMETHODCALLTYPE ReleaseTLibAttr(
+'            /* [in] */ TLIBATTR *pTLibAttr) = 0;
+'
+'    };
 [ InterfaceId ("00020402-0000-0000-C000-000000000046") ]
 Interface ITypeLib Extends IUnknown
     [ PreserveSig ]

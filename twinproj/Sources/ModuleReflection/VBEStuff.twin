@@ -1,13 +1,12 @@
-
-' '<Summary> An internal interface exposed by VBA for all components (modules, class modules, etc)
-'     '<remarks> This internal interface is known to be supported since the very earliest version of VBA6
-'     '[ComImport(), Guid("DDD557E1-D96F-11CD-9570-00AA0051E5D4")]
-'     '[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-'     'Public Enum IVBEComponentVTableOffsets           '+3 for the IUnknown
-'     '    CompileComponentOffset = 12 + 3              'void CompileComponent();
-'     '    GetStdModAccessorOffset = 14 + 3             'IDispatch GetStdModAccessor();
-'     '    GetSomeRelatedTypeInfoPtrsOffset = 34 + 3    'void GetSomeRelatedTypeInfoPtrs(out IntPtr a, out IntPtr b);        // returns 2 TypeInfos, seemingly related to this ITypeInfo, but slightly different.
-'     'End Enum
+'<Summary> An internal interface exposed by VBA for all components (modules, class modules, etc)
+'<remarks> This internal interface is known to be supported since the very earliest version of VBA6
+'[ComImport(), Guid("DDD557E1-D96F-11CD-9570-00AA0051E5D4")]
+'[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+'Public Enum IVBEComponentVTableOffsets           '+3 for the IUnknown
+'    CompileComponentOffset = 12 + 3              'void CompileComponent();
+'    GetStdModAccessorOffset = 14 + 3             'IDispatch GetStdModAccessor();
+'    GetSomeRelatedTypeInfoPtrsOffset = 34 + 3    'void GetSomeRelatedTypeInfoPtrs(out IntPtr a, out IntPtr b);        // returns 2 TypeInfos, seemingly related to this ITypeInfo, but slightly different.
+'End Enum
 
 [ InterfaceId ("DDD557E1-D96F-11CD-9570-00AA0051E5D4") ]
 Interface IVBEComponent Extends IUnknown
@@ -110,7 +109,6 @@ Module VBETypeLib
         Next As LongPtr
     End Type
       
-    
     Public Function StdModuleAccessor(ByVal moduleName As String, ByVal vbProj As VBProject, ByVal projectName As String, Optional ByRef outModuleTypeInfo As ITypeInfo, Optional ByRef outTypeLib As TypeLibInfo) As Object
         Logger.Log TraceLevel, "Get ref instance ptr"
         Dim referencesInstancePtr As LongPtr

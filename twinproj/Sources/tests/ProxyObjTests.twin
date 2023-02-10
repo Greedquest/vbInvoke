@@ -1,4 +1,3 @@
-
 Public Module ProxyObjTests
     Public Sub testSimplestSwap()
         Dim baseObject As Object = New Dictionary
