@@ -1,3 +1,15 @@
+Module Dereferencing
+	Public Function ObjectFromObjPtr(ByVal Address As LongPtr) As IUnknown
+        '@Ignore VariableNotAssigned: Assigned ByRef
+        Dim result As IUnknown
+        '@Ignore ValueRequired: False positive
+        MemLongPtr(VarPtr(result)) = Address
+        Set ObjectFromObjPtr = result
+        '@Ignore ValueRequired: False positive
+        MemLongPtr(VarPtr(result)) = 0
+    End Function
+End Module
+
 Module MemoryProtection
 	Public Enum VirtualProtectFlags                 'See Memory Protection constants: https://docs.microsoft.com/en-gb/windows/win32/memory/memory-protection-constants
         PAGE_EXECUTE_READWRITE = &H40

@@ -1,3 +1,131 @@
+Module TypeInfoTypes
+    Public Enum CALLINGCONVENTION_ENUM
+        ' http://msdn.microsoft.com/en-us/library/system.runtime.interopservices.comtypes.callconv%28v=vs.110%29.aspx
+        CC_FASTCALL = 0&
+        CC_CDECL
+        CC_PASCAL
+        CC_MACPASCAL
+        CC_STDCALL                                   ' typical windows APIs
+        CC_FPFASTCALL
+        CC_SYSCALL
+        CC_MPWCDECL
+        CC_MPWPASCAL
+    End Enum
+
+	Public Type TTYPEDESC
+        pTypeDesc As LongPtr
+        vt As Integer
+    End Type
+
+    Public Type TPARAMDESC
+        pPARAMDESCEX As LongPtr
+        wParamFlags As Integer
+    End Type
+
+    Public Type TELEMDESC
+        tdesc  As TTYPEDESC
+        pdesc  As TPARAMDESC
+    End Type
+
+    Public Type TYPEATTR
+        aGUID As GUIDt
+        LCID As Long
+        dwReserved As Long
+        memidConstructor As Long
+        memidDestructor As Long
+        lpstrSchema As LongPtr
+        cbSizeInstance As Integer
+        typekind As Long
+        cFuncs As Integer
+        cVars As Integer
+        cImplTypes As Integer
+        cbSizeVft As Integer
+        cbAlignment As Integer
+        wTypeFlags As Integer
+        wMajorVerNum As Integer
+        wMinorVerNum As Integer
+        tdescAlias As Long
+        idldescType As Long
+    End Type
+
+    Public Type FUNCDESC
+        memid As DISPID                              'The function member ID (DispId).
+        lprgscode As LongPtr                         'Pointer to status code
+        lprgelemdescParam As LongPtr                 'Pointer to description of the element.
+        funckind As Long                             'virtual, static, or dispatch-only
+        
+        'VbCallType is same as tagInvokeKind
+        '#define DISPATCH_METHOD         0x1 vbMethod
+        '#define DISPATCH_PROPERTYGET    0x2 vbGet
+        '#define DISPATCH_PROPERTYPUT    0x4 vbLet
+        '#define DISPATCH_PROPERTYPUTREF 0x8 vbSet
+        INVOKEKIND As VbCallType
+        CallConv As CALLINGCONVENTION_ENUM           'typically will be stdecl
+        cParams As Integer                           'number of parameters
+        cParamsOpt As Integer                        'number of optional parameters
+        oVft As Integer                              'For FUNC_VIRTUAL, specifies the offset in the VTBL.
+        cScodes As Integer                           'The number of possible return values.
+        elemdescFunc As TELEMDESC                    'The function return type
+        wFuncFlags As Integer                        'The function flags. See FUNCFLAGS.
+    End Type
+End Module
+
+'[ITypeInfo](https://github.com/tpn/winsdk-10/blob/master/Include/10.0.16299.0/um/OAIdl.h#L2683) extends IUnknown
+'0      HRESULT  QueryInterface ([in] REFIID riid, [out] void **ppvObject)
+'1      ULONG    AddRef ()
+'2      ULONG    Release ()
+'3      HRESULT  GetTypeAttr([out] TYPEATTR **ppTypeAttr )
+'4      HRESULT  GetTypeComp([out] ITypeComp **ppTComp )
+'5      HRESULT  GetFuncDesc([in] UINT index, [out] FUNCDESC **ppFuncDesc)
+'6      HRESULT  GetVarDesc([in] UINT index, [out] VARDESC **ppVarDesc)
+'7      HRESULT  GetNames([in] MEMBERID memid, [out] BSTR *rgBstrNames, [in] UINT cMaxNames, [out] UINT *pcNames)
+'8      HRESULT  GetRefTypeOfImplType( [in] UINT index, [out] HREFTYPE *pRefType)
+'9      HRESULT  GetImplTypeFlags( [in] UINT index, [out] INT *pImplTypeFlags)
+'10     HRESULT  GetIDsOfNames( [in] LPOLESTR *rgszNames, [in] UINT cNames, [out] MEMBERID *pMemId)
+'11     HRESULT  Invoke( [in] PVOID pvInstance, [in] MEMBERID memid, [in] WORD wFlags, [out][in] DISPPARAMS *pDispParams, [out] VARIANT *pVarResult, [out] EXCEPINFO *pExcepInfo, [out] UINT *puArgErr)
+'12     HRESULT  GetDocumentation( [in] MEMBERID memid, [out] BSTR *pBstrName, [out] BSTR *pBstrDocString, [out] DWORD *pdwHelpContext, [out] BSTR *pBstrHelpFile)
+'13     HRESULT  GetDllEntry( [in] MEMBERID memid, [in] INVOKEKIND invKind, [out] BSTR *pBstrDllName, [out] BSTR *pBstrName, [out] WORD *pwOrdinal)
+'14     HRESULT  GetRefTypeInfo( [in] HREFTYPE hRefType, [out] ITypeInfo **ppTInfo)
+'15     HRESULT  AddressOfMember( [in] MEMBERID memid, [in] INVOKEKIND invKind, [out] PVOID *ppv)
+'16     HRESULT  CreateInstance( [in] IUnknown *pUnkOuter, [in] REFIID riid, [out] PVOID *ppvObj)
+'17     HRESULT  GetMops( [in] MEMBERID memid, [out] BSTR *pBstrMops)
+'18     HRESULT  GetContainingTypeLib( [out] ITypeLib **ppTLib, [out] UINT *pIndex)
+'19     void     ReleaseTypeAttr( [in] TYPEATTR *pTypeAttr)
+'20     void     ReleaseFuncDesc( [in] FUNCDESC *pFuncDesc)
+'21     void     ReleaseVarDesc( [in] VARDESC *pVarDesc)
+[ InterfaceId ("00020401-0000-0000-C000-000000000046") ]
+Interface ITypeInfo Extends IUnknown
+    
+    'HRESULT  GetTypeAttr([out] TYPEATTR **ppTypeAttr )
+    Sub GetTypeAttr(ByRef outpTypeAttr As LongPtr)
+    Sub DummyGetTypeComp()
+    'HRESULT  GetFuncDesc([in] UINT index, [out] FUNCDESC **ppFuncDesc)
+    Sub GetFuncDesc(ByVal index As Long, ByRef outpFuncDesc As LongPtr)
+    Sub DummyGetVarDesc()
+    Sub DummyGetNames()
+    Sub DummyGetRefTypeOfImplType()
+    Sub DummyGetImplTypeFlags()
+    Sub DummyGetIDsOfNames()
+    Sub DummyInvoke()
+    'HRESULT  GetDocumentation( [in] MEMBERID memid, [out] BSTR *pBstrName, [out] BSTR *pBstrDocString, [out] DWORD *pdwHelpContext, [out] BSTR *pBstrHelpFile)
+    Sub GetDocumentation(ByVal memid As DISPID, ByRef outName As String, Optional ByVal pBstrDocString As LongPtr = NULL_PTR, Optional ByVal pdwHelpContext As LongPtr = NULL_PTR, Optional ByVal pBstrHelpFile As LongPtr = NULL_PTR)
+    Sub DummyGetDllEntry()
+    Sub DummyGetRefTypeInfo()
+    Sub DummyAddressOfMember()
+    Sub DummyCreateInstance()
+    Sub DummyGetMops()
+    Sub DummyGetContainingTypeLib()
+    'void ITypeInfo::ReleaseTypeAttr( [in] TYPEATTR *pTypeAttr)
+    [ PreserveSig ]
+    Sub ReleaseTypeAttr(ByVal pTypeAttr As LongPtr)
+    [ PreserveSig ]
+    'void     ReleaseFuncDesc( [in] FUNCDESC *pFuncDesc)
+    Sub ReleaseFuncDesc(ByVal pFuncDesc As LongPtr)
+    Sub DummyReleaseVarDesc()
+End Interface
+
+
+
 [ Description ("Caching list of ITypeInfos in a given TypeLib") ]
 Private Class TypeInfoCollection
     Public ReadOnly typeLib As ITypeLib
@@ -6,7 +134,7 @@ Private Class TypeInfoCollection
     
     Public Sub New(ByVal wrappedITypeLib As ITypeLib)
         Set typeLib = wrappedITypeLib
-        typeInfoCount = getTypeInfoCount(typeLib)
+        typeInfoCount = typeLib.GetTypeInfoCount
     End Sub
     
     Private Function tryGenerateNext(ByRef outITypeInfo As ITypeInfo) As Boolean
@@ -70,7 +198,7 @@ Module TypeInfoHelper
     [ Description ("Returns a map of funcName:dispid given a certain ITypeInfo without TLBINF32.dll") ]
     Public Function GetFuncDispidFromTypeInfo(ByVal ITypeInfo As ITypeInfo) As Scripting.Dictionary
         Dim attrs As TYPEATTR
-        attrs = getAttrs(ITypeInfo)
+        attrs = TypeInfoHelper.getAttrs(ITypeInfo)
 
         Dim result As Scripting.Dictionary
         Set result = New Scripting.Dictionary
@@ -84,10 +212,10 @@ Module TypeInfoHelper
             funcName = getFuncNameFromDescriptor(ITypeInfo, funcDescriptior)
             With funcDescriptior
                 Logger.Log InfoLevel, funcName & vbTab & Switch( _
-                    .INVOKEKIND = INVOKE_METHOD, "VbMethod", _
-                    .INVOKEKIND = INVOKE_PROPERTYGET, "VbGet", _
-                    .INVOKEKIND = INVOKE_PROPERTYPUT, "VbLet", _
-                    .INVOKEKIND = INVOKE_PROPERTYPUTREF, "VbSet" _
+                    .INVOKEKIND = vbMethod, "VbMethod", _
+                    .INVOKEKIND = vbGet, "VbGet", _
+                    .INVOKEKIND = vbLet, "VbLet", _
+                    .INVOKEKIND = vbSet, "VbSet" _
                     ) & "@" & .memid
                 
                 'property get/set all have the same dispid so only need to be here once
@@ -96,7 +224,7 @@ Module TypeInfoHelper
                 ElseIf result(funcName) <> .memid Then
                     Err.Raise 5, Description:=funcName & "is already associated with another dispid"
                 Else
-                Assert .INVOKEKIND <> INVOKE_METHOD, "this method & dispid should not appear twice"
+                Assert .INVOKEKIND <> vbMethod, "this method & dispid should not appear twice"
                 End If
                 
             End With

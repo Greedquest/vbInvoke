@@ -1,0 +1,14 @@
+Module OLETypes
+    Public Type GUIDt
+        Data1 As Long
+        '@Ignore IntegerDataType
+        Data2 As Integer
+        '@Ignore IntegerDataType
+        Data3 As Integer
+        Data4(0 To 7) As Byte
+    End Type
+
+    Public Enum DISPID
+        [_]
+    End Enum
+End Module
