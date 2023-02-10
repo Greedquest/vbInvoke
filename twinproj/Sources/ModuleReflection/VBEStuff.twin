@@ -55,23 +55,30 @@ Private Class VBETypeLibIterator
         Logger.Log DebugLevel, printf("Before Reset: {}<-{}->{}", this.currentTL.Prev, this.pCurrentTL, this.currentTL.Next)
         Do While this.currentTL.Prev <> 0
             currentTL = this.currentTL.Prev
-            Logger.Log DebugLevel, printf("Resetting: {}<-{}->{}", this.currentTL.Prev, this.pCurrentTL, this.currentTL.Next)
+            Logger.Log DebugLevel, printf("Resetting to: {}<-{}->{}", this.currentTL.Prev, this.pCurrentTL, this.currentTL.Next)
         Loop
+        Logger.Log TraceLevel, "Iterator Reset Complete"
     End Sub
 
-    Private Sub MoveNext()
-        Logger.Log DebugLevel, printf("About to Move: {}<-{}->{}", this.currentTL.Prev, this.pCurrentTL, this.currentTL.Next)
+    Private Sub Yield()
+        'The first yield will be right after a reset
+        ' therefore always dereference the currentTL before incrementing
+        ' otherwise we'll never return the first one
         If this.pCurrentTL = 0 Then Err.Raise 5, Description:="We've reached the end of the line"
-    	currentTL = this.pCurrentTL 'dereference to fill struct
-        this.pCurrentTL = this.currentTL.Next 'we will pick this up as zero next time around
+        currentTL = this.pCurrentTL 'dereference to fill struct. Technically not necessary on first iteration
         Logger.Log DebugLevel, printf("After Move: {}<-{}->{}", this.currentTL.Prev, this.pCurrentTL, this.currentTL.Next)
+        
+        'Set up the next yield...
+        'We will pick this up as zero next time around
+        ' if we are at the end of the list already
+        this.pCurrentTL = this.currentTL.Next
     End Sub
 
     [ Description ("Gets type library com objects from list") ]
     Public Function TryGetNext(ByRef outTypeLib As TypeLibInfo) As Boolean
         On Error GoTo cleanFail
         Dim tlPtr As LongPtr = this.pCurrentTL
-        MoveNext
+        Yield
         Set outTypeLib = New TypeLibInfo(tlPtr) 'no worries about query interface for ITypeLib
         Return True
 
