@@ -43,29 +43,39 @@ Public Class GenericCaster(Of TSource, TDest)
     End Property
 End Class
 
+Module DllEntryPoints
+    [ DllExport ]
+    Public Function GetStandardModuleAccessor(ByVal moduleName As Variant, ByVal proj As VBProject) As Object
+        Return API.GetStandardModuleAccessor(moduleName, proj)
+    End Function
+
+    [ DllExport ]
+    Public Function GetExtendedModuleAccessor(ByVal moduleName As Variant, ByVal proj As VBProject, ByRef outPrivateTI As IUnknown) As Object
+        Return API.GetExtendedModuleAccessor(moduleName, proj, outPrivateTI)
+    End Function
+End Module
+
 [ AppObject ]
 Public Class TypeLibEntryPoints
     Public Function GetStandardModuleAccessor(ByVal moduleName As String, ByVal proj As VBProject) As Object
-    	Return DllEntryPoints.GetStandardModuleAccessor(moduleName, proj)
+    	Return API.GetStandardModuleAccessor(moduleName, proj)
     End Function
     
     Public Function GetExtendedModuleAccessor(ByVal moduleName As String, ByVal proj As VBProject, Optional ByRef outPrivateTI As ITypeInfo) As Object
-    	Return DllEntryPoints.GetExtendedModuleAccessor(moduleName, proj, outPrivateTI)
+    	Return API.GetExtendedModuleAccessor(moduleName, proj, outPrivateTI)
     End Function
 End Class
 
-Module DllEntryPoints
-	[ DllExport ]
-    Public Function GetStandardModuleAccessor(ByVal moduleName As Variant, ByVal proj As VBProject) As Object
+Public Module API
+    Public Function GetStandardModuleAccessor(ByVal moduleName As String, ByVal proj As VBProject) As Object
         Logger.Log InfoLevel, printf("Invoking GetStandardModuleAccessor on {}.{}", proj.Name, moduleName)
         Dim outPublicTI As ITypeInfo
         Dim outExtendedTL As TypeLibInfo
         Set GetStandardModuleAccessor = StdModuleAccessor(moduleName, proj, proj.Name, outPublicTI, outExtendedTL)
         Logger.Log InfoLevel, printf("Discarding ITypeInfo @{} + ITypeLib* @{}", ObjPtr(outPublicTI), ObjPtr(outExtendedTL.ITypeLib))
     End Function
-    
-    [ DllExport ]
-    Public Function GetExtendedModuleAccessor(ByVal moduleName As Variant, ByVal proj As VBProject, ByRef outPrivateTI As ITypeInfo) As Object
+  
+    Public Function GetExtendedModuleAccessor(ByVal moduleName As String, ByVal proj As VBProject, ByRef outPrivateTI As ITypeInfo) As Object
         Logger.Log InfoLevel, printf("Invoking GetExtendedModuleAccessor on {}.{}", proj.Name, moduleName)
         
         'Get the base accessor (same as GetStandardModuleAccessor above) and keep the extended typelib
@@ -76,13 +86,14 @@ Module DllEntryPoints
         Logger.Log InfoLevel, printf("Got ITypeInfo @{} + ITypeLib* @{}", ObjPtr(outPublicTI), ObjPtr(outExtendedTL.ITypeLib))
         
         'The StdModuleAccessor function does obtain the correct Extended ITypeInfo
-        ' however it gets lost along the way (since VBA modules ITypeInfo is double implemented public & private)
+        ' however it gets lost along the way (since VBA modules' ITypeInfo is double implemented public & private)
         'Therefore to guarantee we have the full type info, we can get it from the hidden typelib
         ' and be VERY CAREFUL not to call QueryInterface(IID_ITypeInfo) on it, since this would resolve
         ' back to the public-only type-info
         Dim memberID As DISPID
         Dim pcFound As Integer = 1 'to get only the first matching type-info which cshould be correct
-        outExtendedTL.ITypeLib.FindName StrPtr(moduleName), 0, outPrivateTI, memberID, pcFound
+        outExtendedTL.ITypeLib.FindName moduleName, 0, outPrivateTI, memberID, pcFound
+        Assert pcFound = 1, printf("Unable to re-locate '{}' in the typelib", moduleName)
         Logger.Log InfoLevel, printf("{} PrivateITypeInfo @{}", pcFound, ObjPtr(outPrivateTI))
         
         'This tapes the full ITypeInfo to the StdModuleAccessor, allowing for IDispatch to handle the
@@ -92,6 +103,8 @@ Module DllEntryPoints
         Return swapClass
     End Function
 End Module
+
+
 
 [ COMCreatable (False) ]
 Class SwapClassEX
@@ -151,13 +164,13 @@ Class SwapClassEX
         Logger.Log DebugLevel, printf("Stored private ti@{}, supplied@{}", ObjPtr(ExtendedTypeInfo), ObjPtr(moduleTypeInfo))
         
         Dim pDefaultVTable As LongPtr = MemLongPtr(ObjPtr(Me))
-        'addressof classmethod fails as it is per instance temp stub fn
+        'AddressOf classmethod fails as it is per instance temp stub fn not the VTable function
         Logger.Log TraceLevel, "About to perform VT swap"
         ' CopyMemory pDefaultVTable + PTR_SIZE * 3, pDefaultVTable + PTR_SIZE * 7, 4 * PTR_SIZE
-        MemLongPtr(pDefaultVTable + PTR_SIZE * 3) = MemLongPtr(pDefaultVTable + PTR_SIZE * 7)'AddressOf IDispatch_GetTypeInfoCount  
-        MemLongPtr(pDefaultVTable + PTR_SIZE * 4) = MemLongPtr(pDefaultVTable + PTR_SIZE * 8)'AddressOf IDispatch_GetTypeInfo
-        MemLongPtr(pDefaultVTable + PTR_SIZE * 5) = MemLongPtr(pDefaultVTable + PTR_SIZE * 9)'AddressOf IDispatchVB_GetIDsOfNamesVB 'MemLongPtr(pOverloadVTable + PTR_SIZE * 7) 'getIDsOfNames
-        MemLongPtr(pDefaultVTable + PTR_SIZE * 6) = MemLongPtr(pDefaultVTable + PTR_SIZE * 10)'AddressOf IDispatchVB_InvokeVB 'MemLongPtr(pOverloadVTable + PTR_SIZE * 8) 'invoke
+        MemLongPtr(pDefaultVTable + PTR_SIZE * 3) = MemLongPtr(pDefaultVTable + PTR_SIZE * 7)   'AddressOf IDispatch_GetTypeInfoCount  
+        MemLongPtr(pDefaultVTable + PTR_SIZE * 4) = MemLongPtr(pDefaultVTable + PTR_SIZE * 8)   'AddressOf IDispatch_GetTypeInfo
+        MemLongPtr(pDefaultVTable + PTR_SIZE * 5) = MemLongPtr(pDefaultVTable + PTR_SIZE * 9)   'AddressOf IDispatch_GetIDsOfNames
+        MemLongPtr(pDefaultVTable + PTR_SIZE * 6) = MemLongPtr(pDefaultVTable + PTR_SIZE * 10)  'AddressOf IDispatch_Invoke
         Logger.Log TraceLevel, printf("VT swap complete {}<-{} ({}[{}])", pDefaultVTable + PTR_SIZE * 3, pDefaultVTable + PTR_SIZE * 7, 4 * PTR_SIZE, PTR_SIZE)
 
     End Sub
