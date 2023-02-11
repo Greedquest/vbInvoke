@@ -1,91 +1,6 @@
-'TODO tidy this up
-'    MIDL_INTERFACE ("00020402-0000-0000-C000-000000000046")
-'ITypeLib:      Public IUnknown
-'0      HRESULT  QueryInterface ([in] REFIID riid, [out] void **ppvObject)
-'1      ULONG    AddRef ()
-'2      ULONG    Release ()
-'3      UINT     GetTypeInfoCount( void) = 0;
-'4      HRESULT  GetTypeInfo(
-'            /* [in] */ UINT index,
-'            /* [out] */ __RPC__deref_out_opt ITypeInfo **ppTInfo) = 0;
-'
-'        virtual HRESULT STDMETHODCALLTYPE GetTypeInfoType(
-'            /* [in] */ UINT index,
-'            /* [out] */ __RPC__out TYPEKIND *pTKind) = 0;
-'
-'        virtual HRESULT STDMETHODCALLTYPE GetTypeInfoOfGuid(
-'            /* [in] */ __RPC__in REFGUID guid,
-'            /* [out] */ __RPC__deref_out_opt ITypeInfo **ppTinfo) = 0;
-'
-'        virtual /* [local] */ HRESULT STDMETHODCALLTYPE GetLibAttr(
-'            /* [out] */ TLIBATTR **ppTLibAttr) = 0;
-'
-'        virtual HRESULT STDMETHODCALLTYPE GetTypeComp(
-'            /* [out] */ __RPC__deref_out_opt ITypeComp **ppTComp) = 0;
-'
-'        virtual /* [local] */ HRESULT STDMETHODCALLTYPE GetDocumentation(
-'            /* [in] */ INT index,
-'            /* [annotation][out] */
-'            _Outptr_opt_  BSTR *pBstrName,
-'            /* [annotation][out] */
-'            _Outptr_opt_  BSTR *pBstrDocString,
-'            /* [out] */ DWORD *pdwHelpContext,
-'            /* [annotation][out] */
-'            _Outptr_opt_  BSTR *pBstrHelpFile) = 0;
-'
-'        virtual /* [local] */ HRESULT STDMETHODCALLTYPE IsName(
-'            /* [annotation][out][in] */
-'            __RPC__inout  LPOLESTR szNameBuf,
-'            /* [in] */ ULONG lHashVal,
-'            /* [out] */ BOOL *pfName) = 0;
-'
-'        virtual /* [local] */ HRESULT STDMETHODCALLTYPE FindName(
-'            /* [annotation][out][in] */
-'            __RPC__inout  LPOLESTR szNameBuf,
-'            /* [in] */ ULONG lHashVal,
-'            /* [length_is][size_is][out] */ ITypeInfo **ppTInfo,
-'            /* [length_is][size_is][out] */ MEMBERID *rgMemId,
-'            /* [out][in] */ USHORT *pcFound) = 0;
-'
-'        virtual /* [local] */ void STDMETHODCALLTYPE ReleaseTLibAttr(
-'            /* [in] */ TLIBATTR *pTLibAttr) = 0;
-'
-'    };
-[ InterfaceId ("00020402-0000-0000-C000-000000000046") ]
-Interface ITypeLib Extends IUnknown
-    [ PreserveSig ]
-    Function GetTypeInfoCount() As Long
-    Sub GetTypeInfo(ByVal index As Long, ByRef outTI As ITypeInfo)
-    Sub DummyGetTypeInfoType()
-    Sub DummyGetTypeInfoOfGuid()
-    Sub DummyGetLibAttr()
-    Sub GetTypeComp()
-    
-'        virtual /* [local] */ HRESULT STDMETHODCALLTYPE GetDocumentation(
-'            /* [in] */ INT index,
-'            /* [annotation][out] */
-'            _Outptr_opt_  BSTR *pBstrName,
-'            /* [annotation][out] */
-'            _Outptr_opt_  BSTR *pBstrDocString,
-'            /* [out] */ DWORD *pdwHelpContext,
-'            /* [annotation][out] */
-'            _Outptr_opt_  BSTR *pBstrHelpFile) = 0;
-    Sub GetDocumentation(ByVal memid As DISPID, ByRef outName As String, Optional ByVal pBstrDocString As LongPtr = NULL_PTR, Optional ByVal pdwHelpContext As LongPtr = NULL_PTR, Optional ByVal pBstrHelpFile As LongPtr = NULL_PTR)
-    Sub DummyIsName()
-    'HRESULT FindName(
-    '  [in, out] LPOLESTR  szNameBuf,
-    '  [in]      ULONG     lHashVal,
-    '  [out]     ITypeInfo **ppTInfo,
-    '  [out]     MEMBERID  *rgMemId,
-    '  [in, out] USHORT * pcFound
-    ');
-    Sub FindName(ByVal szNameBuf As LongPtr, ByVal lHashVal As Long, ByRef outTypeInfoArrayFirst As ITypeInfo, ByRef outMemIDArrayFirst As Long, ByRef pcFound As Integer)
-    Sub DummyReleaseTLibAttr()
-End Interface
-
 Module TypeLibHelper
     Public Function getITypeInfoByIndex(ByVal ITypeLib As ITypeLib, ByVal index As Long) As ITypeInfo
-        ITypeLib.GetTypeInfo(index, getITypeInfoByIndex)
+        Return ITypeLib.GetTypeInfo(index)
     End Function
 
     Public Function getProjName(ByVal ITypeLib As ITypeLib) As String
@@ -94,7 +9,7 @@ Module TypeLibHelper
     End Function
     
     Private Function getDocumentation(ByVal ITypeLib As ITypeLib, ByVal memid As DISPID) As String
-        ITypeLib.GetDocumentation memid, getDocumentation
+        ITypeLib.GetDocumentation memid, getDocumentation, vbNullString, 0&, vbNullString
     End Function
 End Module
 
