@@ -50,6 +50,21 @@
 			"versionMajor": "1",
 			"versionMinor": "0",
 			"versionRevision": "0"
+		},
+		{
+			"id": "{1FCDB98D-617D-4995-9736-2ED0E4746A10}",
+			"licence": "MIT",
+			"name": "[IMPORTED] twinBASIC Shell Library v2.9.81",
+			"path32": "/Packages/tbShellLib",
+			"path64": "/Packages/tbShellLib",
+			"publishedDate": "10-FEB-2023",
+			"publishedTime": "08:20:39",
+			"publisher": "fafalone",
+			"symbolId": "tbShellLib",
+			"versionBuild": "0",
+			"versionMajor": "2",
+			"versionMinor": "9",
+			"versionRevision": "81"
 		}
 	],
 	"project.versionMajor": 1,
