@@ -1,17 +1,17 @@
 
 *.twinproj
 
+#document code behind
 *.doccls
 
-~$*.xl?m
+#temp files
+~$*.xl?m 
 
+#demo files
+VBA/*.xl?m  
 testing/callme.xlsm
 
 Build/
 
-VBRUN/
-VBA/*.xl?m
-
-
-
-VBA/VBAHack Demo.xlsm
+#references
+twinproj/Packages/
