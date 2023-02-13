@@ -8,7 +8,7 @@ Module TypeLibHelper
         getProjName = getDocumentation(ITypeLib, KnownMemberIDs.MEMBERID_NIL)
     End Function
     
-    Private Function getDocumentation(ByVal ITypeLib As ITypeLib, ByVal memid As DISPID) As String
+    Private Function getDocumentation(ByVal ITypeLib As ITypeLib, ByVal memid As MEMID) As String
         ITypeLib.GetDocumentation memid, getDocumentation, vbNullString, 0&, vbNullString
     End Function
 End Module
