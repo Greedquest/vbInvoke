@@ -13,8 +13,7 @@ Module TypeLibHelper
     End Function
 End Module
 
-[ COMCreatable (False) ]
-Class TypeLibInfo
+Private Class TypeLibInfo
     Private Type TTypeLibInfo
         ITypeLib As ITypeLib
         typeInfos As TypeInfoCollection

@@ -104,10 +104,7 @@ Public Module API
     End Function
 End Module
 
-
-
-[ COMCreatable (False) ]
-Class SwapClassEX
+Private Class SwapClassEX
     Private Declare PtrSafe Function SysReAllocString Lib "oleaut32.dll" (ByVal pBSTR As LongPtr, Optional ByVal pszStrPtr As LongPtr) As Long
     Private ReadOnly BaseAccessor As vbInvoke.IDispatch 'don't use stdole since that doesn't have the methods visible
     Private ReadOnly ExtendedTypeInfo As ITypeInfo
