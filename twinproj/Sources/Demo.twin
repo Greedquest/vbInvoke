@@ -56,6 +56,7 @@ Module DllEntryPoints
 End Module
 
 [ AppObject ]
+[ Hidden ]
 Public Class TypeLibEntryPoints
     Public Function GetStandardModuleAccessor(ByVal moduleName As String, ByVal proj As VBProject) As Object
     	Return API.GetStandardModuleAccessor(moduleName, proj)
