@@ -90,7 +90,7 @@ Public Module API
         'Therefore to guarantee we have the full type info, we can get it from the hidden typelib
         ' and be VERY CAREFUL not to call QueryInterface(IID_ITypeInfo) on it, since this would resolve
         ' back to the public-only type-info
-        Dim memberID As DISPID
+        Dim memberID As MEMID
         Dim pcFound As Integer = 1 'to get only the first matching type-info which cshould be correct
         outExtendedTL.ITypeLib.FindName moduleName, 0, outPrivateTI, memberID, pcFound
         Assert pcFound = 1, printf("Unable to re-locate '{}' in the typelib", moduleName)

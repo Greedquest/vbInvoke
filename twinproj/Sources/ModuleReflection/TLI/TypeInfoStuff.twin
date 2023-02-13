@@ -113,7 +113,7 @@ Module TypeInfoHelper
         getModName = getDocumentation(ITypeInfo, KnownMemberIDs.MEMBERID_NIL)
     End Function
     
-    Private Function getDocumentation(ByVal ITypeInfo As ITypeInfo, ByVal memid As DISPID) As String
+    Private Function getDocumentation(ByVal ITypeInfo As ITypeInfo, ByVal memid As MEMID) As String
         ITypeInfo.GetDocumentation memid, getDocumentation, vbNullString, 0&, vbNullString
     End Function
 

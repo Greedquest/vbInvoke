@@ -1,5 +1,5 @@
 Module OLETypes
-    Public Enum DISPID
+    Public Enum MEMID
         [_]
     End Enum
 End Module
