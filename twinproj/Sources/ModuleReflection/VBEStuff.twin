@@ -9,7 +9,7 @@
 'End Enum
 
 [ InterfaceId ("DDD557E1-D96F-11CD-9570-00AA0051E5D4") ]
-Interface IVBEComponent Extends IUnknown
+Private Interface IVBEComponent Extends IUnknown
 	Sub Placeholder01()
     Sub Placeholder02()
     Sub Placeholder03()
