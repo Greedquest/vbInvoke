@@ -1,4 +1,4 @@
-# vbInvoke [![Code Review](http://www.zomis.net/codereview/shield/?qid=274532&mode=score)](http://codereview.stackexchange.com/q/274532/146810) ![GitHub Latest Release)](https://img.shields.io/github/v/release/Greedquest/vbInvoke?logo=github)
+# vbInvoke [![Code Review](http://www.zomis.net/codereview/shield/?qid=274532&mode=score)](http://codereview.stackexchange.com/q/274532/146810) [![GitHub Latest Release)](https://img.shields.io/github/v/release/Greedquest/vbInvoke?logo=github)](https://github.com/Greedquest/vbInvoke/releases/latest)
 
 Library for calling methods in VBA modules with several key benefits:
   - Host agnostic (unlike `Application.Run`)
