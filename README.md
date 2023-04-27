@@ -43,7 +43,7 @@ Dim exampleModuleAccessor As Object
 Set exampleModuleAccessor = GetExtendedModuleAccessor("ExampleModule", ThisWorkbook.VBProject)
 
 For Each methodName In exampleModuleAccessor
-	CallByName exampleModuleAccessor, methodName, vbMethod
+	CallByName exampleModuleAccessor, methodName, vbMethod  ' Or simply exampleModuleAccessor.methodName if the method is known at design time 
 Next methodName
 ```
 
